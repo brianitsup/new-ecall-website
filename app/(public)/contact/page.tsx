@@ -84,9 +84,9 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">Opening Hours:</p>
-                      <p className="text-sm text-gray-500">Monday - Friday: 9:00 AM - 6:00 PM</p>
-                      <p className="text-sm text-gray-500">Saturday: 9:00 AM - 4:00 PM</p>
-                      <p className="text-sm text-gray-500">Sundays & Public Holidays: Closed</p>
+                      <p className="text-sm text-gray-500">Monday - Friday: 9:00 AM - 8:00 PM</p>
+                      <p className="text-sm text-gray-500">Saturday & Sunday: 9:00 AM - 4:00 PM</p>
+                      <p className="text-sm text-gray-500">Public Holidays: Closed</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -114,7 +114,7 @@ export default function ContactPage() {
                       <p className="text-sm font-medium">Opening Hours (Clinic):</p>
                       <p className="text-sm text-gray-500">Monday - Friday: 9:00 AM - 6:00 PM</p>
                       <p className="text-sm text-gray-500">Saturday: 9:00 AM - 4:00 PM</p>
-                      <p className="text-sm text-gray-500">Sundays & Public Holidays: Closed</p>
+                      <p className="text-sm text-gray-500">Sunday & Public Holidays: Closed</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium">Opening Hours (Dental Services):</p>

@@ -6,7 +6,7 @@ import { ArrowLeft, Calendar, Facebook, Linkedin, Twitter, ArrowRight } from "lu
 
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { createClientComponentClient } from "@supabase/supabase-js"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function BlogPostPage({ params }: { params: { slug: string } }) {
   const [post, setPost] = useState<any>(null)
@@ -14,10 +14,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const supabase = createClientComponentClient({
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  })
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
     const fetchPost = async () => {
