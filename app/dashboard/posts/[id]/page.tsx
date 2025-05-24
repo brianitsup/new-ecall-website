@@ -12,10 +12,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { RichTextEditor } from "@/components/rich-text-editor"
+import { useToast } from "@/hooks/use-toast"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function PostPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const { toast } = useToast()
   const { id } = params
   const isNewPost = id === "new"
 
@@ -76,6 +79,10 @@ export default function PostPage({ params }: { params: { id: string } }) {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleContentChange = (content: string) => {
+    setFormData((prev) => ({ ...prev, content }))
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,6 +150,13 @@ export default function PostPage({ params }: { params: { id: string } }) {
         ])
 
         if (insertError) throw insertError
+
+        // Show success toast for new post
+        toast({
+          variant: "success",
+          title: "Post Created Successfully!",
+          description: `"${formData.title}" has been published and is now live.`,
+        })
       } else {
         // Update existing post
         const { error: updateError } = await supabase
@@ -158,14 +172,48 @@ export default function PostPage({ params }: { params: { id: string } }) {
           .eq("id", id)
 
         if (updateError) throw updateError
+
+        // Show success toast for updated post
+        toast({
+          variant: "success",
+          title: "Post Updated Successfully!",
+          description: `"${formData.title}" has been updated.`,
+        })
       }
 
-      // Redirect to posts list
-      router.push("/dashboard/posts")
-      router.refresh()
+      // Show success toast and redirect immediately
+      if (isNewPost) {
+        toast({
+          variant: "success",
+          title: "Post Created Successfully!",
+          description: `"${formData.title}" has been published and is now live.`,
+        })
+      } else {
+        toast({
+          variant: "success",
+          title: "Post Updated Successfully!",
+          description: `"${formData.title}" has been updated.`,
+        })
+      }
+
+      // Reset saving state
+      setSaving(false)
+
+      // Redirect after a short delay to show the toast
+      setTimeout(() => {
+        router.push("/dashboard/posts")
+      }, 500)
     } catch (error: any) {
       setError(error.message || `An error occurred while ${isNewPost ? "creating" : "updating"} the post`)
       console.error(`Error ${isNewPost ? "creating" : "updating"} post:`, error)
+
+      // Show error toast
+      toast({
+        variant: "destructive",
+        title: `Failed to ${isNewPost ? "Create" : "Update"} Post`,
+        description: error.message || "Please try again.",
+      })
+
       setSaving(false)
     }
   }
@@ -196,8 +244,8 @@ export default function PostPage({ params }: { params: { id: string } }) {
       {error && <div className="bg-red-50 text-red-600 p-4 rounded-md">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-4 md:col-span-1">
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-4 lg:col-span-1">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -278,21 +326,16 @@ export default function PostPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          <div className="space-y-4 md:col-span-1">
+          <div className="space-y-4 lg:col-span-2">
             <div className="space-y-2">
               <Label htmlFor="content">Content</Label>
-              <Textarea
-                id="content"
-                name="content"
-                value={formData.content}
-                onChange={handleChange}
+              <RichTextEditor
+                content={formData.content}
+                onChange={handleContentChange}
                 placeholder="Write your post content here..."
-                className="min-h-[300px]"
-                required
               />
               <p className="text-xs text-gray-500">
-                Use HTML tags for formatting. For example, &lt;h2&gt;Heading&lt;/h2&gt; for headings,
-                &lt;p&gt;Paragraph&lt;/p&gt; for paragraphs, &lt;ul&gt;&lt;li&gt;Item&lt;/li&gt;&lt;/ul&gt; for lists.
+                Use the toolbar above to format your content. You can add headings, lists, links, and more.
               </p>
             </div>
           </div>
@@ -304,11 +347,10 @@ export default function PostPage({ params }: { params: { id: string } }) {
           </Button>
           <Button type="submit" className="bg-sky-600 hover:bg-sky-700" disabled={saving}>
             {saving ? (
-              isNewPost ? (
-                "Creating..."
-              ) : (
-                "Saving..."
-              )
+              <>
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                {isNewPost ? "Creating..." : "Saving..."}
+              </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />

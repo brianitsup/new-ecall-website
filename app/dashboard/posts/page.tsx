@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function PostsPage() {
@@ -27,10 +28,12 @@ export default function PostsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [deletePostId, setDeletePostId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tableExists, setTableExists] = useState(true)
 
   const supabase = createClientComponentClient()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchPosts()
@@ -74,16 +77,40 @@ export default function PostsPage() {
     if (!deletePostId) return
 
     try {
+      setDeleting(true)
+
+      // Find the post to get its title for the toast
+      const postToDelete = posts.find((post) => post.id === deletePostId)
+      const postTitle = postToDelete?.title || "Post"
+
       const { error } = await supabase.from("posts").delete().eq("id", deletePostId)
 
       if (error) throw error
 
       // Remove the deleted post from the state
       setPosts(posts.filter((post) => post.id !== deletePostId))
+
+      // Show success toast
+      toast({
+        variant: "success",
+        title: "Post Deleted Successfully!",
+        description: `"${postTitle}" has been permanently deleted.`,
+      })
+
+      // Reset delete state
       setDeletePostId(null)
     } catch (error: any) {
       console.error("Error deleting post:", error)
       setError(error.message || "An error occurred while deleting the post")
+
+      // Show error toast
+      toast({
+        variant: "destructive",
+        title: "Failed to Delete Post",
+        description: error.message || "Please try again.",
+      })
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -228,6 +255,7 @@ CREATE POLICY "Allow public to view images"
                                 variant="ghost"
                                 size="icon"
                                 className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                onClick={() => setDeletePostId(post.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
                                 <span className="sr-only">Delete</span>
@@ -241,12 +269,20 @@ CREATE POLICY "Allow public to view images"
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel onClick={() => setDeletePostId(null)}>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
                                   className="bg-red-600 hover:bg-red-700"
-                                  onClick={() => handleDeletePost()}
+                                  onClick={handleDeletePost}
+                                  disabled={deleting}
                                 >
-                                  Delete
+                                  {deleting ? (
+                                    <>
+                                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                      Deleting...
+                                    </>
+                                  ) : (
+                                    "Delete"
+                                  )}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -275,23 +311,6 @@ CREATE POLICY "Allow public to view images"
           )}
         </>
       )}
-
-      <AlertDialog open={!!deletePostId} onOpenChange={(open) => !open && setDeletePostId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the post. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={handleDeletePost}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

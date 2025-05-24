@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Toaster } from "@/components/ui/toaster"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -176,6 +177,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
+      <Toaster />
     </div>
   )
 }
