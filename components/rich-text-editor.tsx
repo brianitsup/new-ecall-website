@@ -4,7 +4,7 @@ import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
 import Underline from "@tiptap/extension-underline"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import {
   Bold,
   Italic,
@@ -23,7 +23,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
@@ -43,154 +42,61 @@ interface RichTextEditorProps {
 export function RichTextEditor({ content, onChange, placeholder = "Start writing..." }: RichTextEditorProps) {
   const [linkUrl, setLinkUrl] = useState("")
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const [editorError, setEditorError] = useState<string | null>(null)
-  const [fallbackMode, setFallbackMode] = useState(false)
 
-  // Ensure component is mounted before initializing editor
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const handleContentChange = useCallback(
-    (newContent: string) => {
-      try {
-        onChange(newContent)
-      } catch (error) {
-        console.error("Error updating content:", error)
-      }
-    },
-    [onChange],
-  )
-
-  const editor = useEditor(
-    {
-      extensions: [
-        StarterKit.configure({
-          heading: {
-            levels: [1, 2, 3],
-          },
-          bulletList: {
-            keepMarks: true,
-            keepAttributes: false,
-          },
-          orderedList: {
-            keepMarks: true,
-            keepAttributes: false,
-          },
-        }),
-        Link.configure({
-          openOnClick: false,
-          HTMLAttributes: {
-            class: "text-sky-600 underline hover:text-sky-700",
-          },
-        }),
-        Underline,
-      ],
-      content: content || "",
-      onUpdate: ({ editor }) => {
-        try {
-          const html = editor.getHTML()
-          handleContentChange(html)
-        } catch (error) {
-          console.error("Error in editor update:", error)
-          setEditorError("Error updating content")
-        }
-      },
-      onCreate: ({ editor }) => {
-        console.log("Editor created successfully")
-      },
-      onError: ({ error }) => {
-        console.error("Tiptap editor error:", error)
-        setEditorError(`Editor error: ${error.message}`)
-        setFallbackMode(true)
-      },
-      editorProps: {
-        attributes: {
-          class: "min-h-[200px] p-4 border-0 focus:outline-none prose prose-sm max-w-none",
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
         },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-sky-600 underline hover:text-sky-700",
+        },
+      }),
+      Underline,
+    ],
+    content: content || "",
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML()
+      onChange(html)
+    },
+    editorProps: {
+      attributes: {
+        class: "min-h-[200px] p-4 border-0 focus:outline-none prose prose-sm max-w-none",
       },
     },
-    [],
-  )
+  })
 
-  // Update editor content when prop changes
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      try {
-        editor.commands.setContent(content || "")
-      } catch (error) {
-        console.error("Error setting editor content:", error)
-      }
+      editor.commands.setContent(content || "")
     }
   }, [editor, content])
 
-  // Fallback to textarea if editor fails or not mounted
-  useEffect(() => {
-    if (mounted && !editor) {
-      const timer = setTimeout(() => {
-        console.warn("Tiptap editor failed to initialize, using fallback")
-        setFallbackMode(true)
-      }, 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [mounted, editor])
-
   const addLink = () => {
     if (linkUrl && editor) {
-      try {
-        editor.chain().focus().extendMarkRange("link").setLink({ href: linkUrl }).run()
-        setLinkUrl("")
-        setLinkDialogOpen(false)
-      } catch (error) {
-        console.error("Error adding link:", error)
-      }
+      editor.chain().focus().extendMarkRange("link").setLink({ href: linkUrl }).run()
+      setLinkUrl("")
+      setLinkDialogOpen(false)
     }
   }
 
   const removeLink = () => {
     if (editor) {
-      try {
-        editor.chain().focus().unsetLink().run()
-      } catch (error) {
-        console.error("Error removing link:", error)
-      }
+      editor.chain().focus().unsetLink().run()
     }
   }
 
-  // Don't render anything until mounted (prevents SSR issues)
-  if (!mounted) {
+  if (!editor) {
     return (
       <div className="min-h-[200px] border rounded-md flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sky-600 mx-auto mb-2"></div>
           <div className="text-sm text-gray-500">Loading editor...</div>
         </div>
-      </div>
-    )
-  }
-
-  // Fallback textarea mode
-  if (fallbackMode || !editor || editorError) {
-    return (
-      <div className="space-y-2">
-        {editorError && (
-          <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded border">
-            Rich text editor unavailable. Using basic text editor.
-            <div className="text-xs mt-1">Error: {editorError}</div>
-          </div>
-        )}
-        <Textarea
-          value={content}
-          onChange={(e) => handleContentChange(e.target.value)}
-          placeholder={placeholder}
-          className="min-h-[200px] font-mono text-sm"
-          rows={10}
-        />
-        <p className="text-xs text-gray-500">
-          You can use HTML tags for formatting. For example, &lt;h2&gt;Heading&lt;/h2&gt; for headings,
-          &lt;p&gt;Paragraph&lt;/p&gt; for paragraphs, &lt;ul&gt;&lt;li&gt;Item&lt;/li&gt;&lt;/ul&gt; for lists.
-        </p>
       </div>
     )
   }

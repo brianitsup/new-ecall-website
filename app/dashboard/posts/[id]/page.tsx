@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RichTextEditor } from "@/components/rich-text-editor"
-import { SimpleEditor } from "@/components/simple-editor"
 import { useToast } from "@/hooks/use-toast"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
@@ -36,12 +35,10 @@ export default function PostPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(!isNewPost)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [useSimpleEditor, setUseSimpleEditor] = useState(false)
 
   const supabase = createClientComponentClient()
 
   useEffect(() => {
-    // Skip fetching if we're creating a new post
     if (isNewPost) {
       setLoading(false)
       return
@@ -114,14 +111,12 @@ export default function PostPage({ params }: { params: { id: string } }) {
     setError(null)
 
     try {
-      // Validate form
       if (!formData.title || !formData.excerpt || !formData.content || !formData.category) {
         throw new Error("Please fill in all required fields")
       }
 
       let imageUrl = formData.currentImageUrl
 
-      // Upload new image if exists
       if (formData.image) {
         const fileExt = formData.image.name.split(".").pop()
         const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`
@@ -131,7 +126,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
 
         if (uploadError) throw uploadError
 
-        // Get public URL
         const {
           data: { publicUrl },
         } = supabase.storage.from("images").getPublicUrl(filePath)
@@ -140,7 +134,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
       }
 
       if (isNewPost) {
-        // Create new post
         const { error: insertError } = await supabase.from("posts").insert([
           {
             title: formData.title,
@@ -148,20 +141,18 @@ export default function PostPage({ params }: { params: { id: string } }) {
             content: formData.content,
             category: formData.category,
             image: imageUrl,
-            author: "Admin", // This could be dynamic based on the logged-in user
+            author: "Admin",
           },
         ])
 
         if (insertError) throw insertError
 
-        // Show success toast for new post
         toast({
           variant: "success",
           title: "Post Created Successfully!",
           description: `"${formData.title}" has been published and is now live.`,
         })
       } else {
-        // Update existing post
         const { error: updateError } = await supabase
           .from("posts")
           .update({
@@ -176,7 +167,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
 
         if (updateError) throw updateError
 
-        // Show success toast for updated post
         toast({
           variant: "success",
           title: "Post Updated Successfully!",
@@ -184,10 +174,8 @@ export default function PostPage({ params }: { params: { id: string } }) {
         })
       }
 
-      // Reset saving state
       setSaving(false)
 
-      // Redirect after a short delay to show the toast
       setTimeout(() => {
         router.push("/dashboard/posts")
       }, 500)
@@ -195,7 +183,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
       setError(error.message || `An error occurred while ${isNewPost ? "creating" : "updating"} the post`)
       console.error(`Error ${isNewPost ? "creating" : "updating"} post:`, error)
 
-      // Show error toast
       toast({
         variant: "destructive",
         title: `Failed to ${isNewPost ? "Create" : "Update"} Post`,
@@ -318,31 +305,14 @@ export default function PostPage({ params }: { params: { id: string } }) {
 
           <div className="space-y-4 lg:col-span-2">
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="content">Content</Label>
-                <Button type="button" variant="outline" size="sm" onClick={() => setUseSimpleEditor(!useSimpleEditor)}>
-                  {useSimpleEditor ? "Use Rich Editor" : "Use Simple Editor"}
-                </Button>
-              </div>
-
-              {useSimpleEditor ? (
-                <SimpleEditor
-                  content={formData.content}
-                  onChange={handleContentChange}
-                  placeholder="Write your post content here..."
-                />
-              ) : (
-                <RichTextEditor
-                  content={formData.content}
-                  onChange={handleContentChange}
-                  placeholder="Write your post content here..."
-                />
-              )}
-
+              <Label htmlFor="content">Content</Label>
+              <RichTextEditor
+                content={formData.content}
+                onChange={handleContentChange}
+                placeholder="Write your post content here..."
+              />
               <p className="text-xs text-gray-500">
-                {useSimpleEditor
-                  ? "Use **bold**, *italic*, and [links](url) for formatting. Start lines with '- ' for lists."
-                  : "Use the toolbar above to format your content. You can add headings, lists, links, and more."}
+                Use the toolbar above to format your content. You can add headings, lists, links, and more.
               </p>
             </div>
           </div>
