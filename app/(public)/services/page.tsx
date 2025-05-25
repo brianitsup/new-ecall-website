@@ -13,42 +13,49 @@ export default function ServicesPage() {
       description:
         "Our experienced doctors provide comprehensive medical consultations for patients of all ages. We focus on preventive care, diagnosis, and treatment of various health conditions with personalized attention.",
       locations: "Both locations",
+      image: "/images/medical-consultations.png",
     },
     {
       title: "Medications and Treatment",
       description:
         "We provide a wide range of medications and treatments for various conditions. Our clinic ensures access to essential medicines and appropriate therapeutic interventions tailored to each patient's needs.",
       locations: "Both locations",
+      image: "/images/medications-treatment.png",
     },
     {
       title: "Ultrasound Imaging",
       description:
         "We offer advanced diagnostic imaging services to help accurately assess and diagnose various conditions. Our ultrasound services include abdominal, pelvic, obstetric, and soft tissue examinations.",
       locations: "Both locations",
+      image: "/images/ultrasound-imaging.png",
     },
     {
       title: "Minor Surgical Procedures",
       description:
         "Our clinic is equipped to perform a range of minor surgical procedures in a safe and sterile environment. These include wound care, abscess drainage, suturing, and removal of skin lesions.",
       locations: "Both locations",
+      image: "/images/minor-surgical-procedures.png",
     },
     {
       title: "Maternal & Child Healthcare",
       description:
         "We provide specialized care for mothers and children at all stages, including prenatal care, postnatal support, child health check-ups, vaccinations, and developmental assessments.",
       locations: "Both locations",
+      image: "/images/maternal-child-healthcare.png",
     },
     {
       title: "Laboratory Services",
       description:
         "Our comprehensive laboratory services include blood tests, urinalysis, and other diagnostic tests to help in the accurate diagnosis and monitoring of various health conditions with timely and reliable results.",
       locations: "Both locations",
+      image: "/images/laboratory-services.png",
     },
     {
       title: "Microscopy Services",
       description:
         "We offer specialized microscopy services for the diagnosis of infectious diseases prevalent in Solomon Islands, including malaria, dengue fever, and other parasitic infections, providing quick and accurate results.",
       locations: "Both locations",
+      image: "/images/microscopy-services.png",
     },
     {
       title: "Dental Services",
@@ -56,24 +63,28 @@ export default function ServicesPage() {
         "Our dental services include routine check-ups, cleanings, fillings, extractions, and preventive care. We focus on maintaining oral health and addressing dental issues with professional and gentle care.",
       locations: "Henderson Court branch only",
       specialLocation: true,
+      image: "/images/dental-services.png",
     },
     {
       title: "Occupational Health Services",
       description:
         "We provide comprehensive occupational health services for businesses and organizations, including pre-employment assessments, periodic health check-ups, and workplace health and safety consultations.",
       locations: "Both locations",
+      image: "/images/occupational-health.png",
     },
     {
       title: "Public Health Consultancy",
       description:
         "Our team provides expert consultancy services in public health, helping organizations and communities develop and implement effective health programs and policies.",
       locations: "Both locations",
+      image: "/images/public-health-consultancy.png",
     },
     {
       title: "Overseas Medical Referrals",
       description:
         "Through our partnership with Medivisor India, we support advanced overseas medical referrals for patients who require specialized treatment not available locally.",
       locations: "Both locations",
+      image: "/images/overseas-medical-referrals.png",
     },
   ]
 
@@ -103,13 +114,11 @@ export default function ServicesPage() {
                   <CardTitle>{service.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="aspect-video overflow-hidden rounded-lg mb-4">
+                  <div className="aspect-video overflow-hidden rounded-lg mb-4 bg-sky-50 flex items-center justify-center">
                     <img
+                      src={service.image || "/placeholder.svg"}
                       alt={service.title}
-                      className="object-cover w-full h-full"
-                      height="200"
-                      src="/placeholder.svg?height=200&width=350"
-                      width="350"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <CardDescription className="text-sm text-gray-500">{service.description}</CardDescription>

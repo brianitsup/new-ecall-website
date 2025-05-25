@@ -61,7 +61,7 @@ export default function AboutPage() {
                 alt="eCall Health Center Medical Team"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
                 height="400"
-                src="/placeholder.svg?height=400&width=600"
+                src="/images/ecall-specialists.jpeg?height=400&width=600"
                 width="600"
               />
             </div>
