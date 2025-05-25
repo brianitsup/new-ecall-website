@@ -4,7 +4,7 @@ import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
 import Underline from "@tiptap/extension-underline"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import {
   Bold,
   Italic,
@@ -43,107 +43,146 @@ interface RichTextEditorProps {
 export function RichTextEditor({ content, onChange, placeholder = "Start writing..." }: RichTextEditorProps) {
   const [linkUrl, setLinkUrl] = useState("")
   const [linkDialogOpen, setLinkDialogOpen] = useState(false)
-  const [editorReady, setEditorReady] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [editorError, setEditorError] = useState<string | null>(null)
   const [fallbackMode, setFallbackMode] = useState(false)
-  const [debugInfo, setDebugInfo] = useState("")
 
-  const editor = useEditor({
-    extensions: [
-      // Use StarterKit with proper configuration - don't try to extend it
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-        bulletList: {
-          keepMarks: true,
-          keepAttributes: false,
-        },
-        orderedList: {
-          keepMarks: true,
-          keepAttributes: false,
-        },
-      }),
-      // Add only the extensions that aren't in StarterKit
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "text-sky-600 underline hover:text-sky-700",
-        },
-      }),
-      Underline,
-    ],
-    content: content || "",
-    onUpdate: ({ editor }) => {
+  // Ensure component is mounted before initializing editor
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const handleContentChange = useCallback(
+    (newContent: string) => {
       try {
-        const html = editor.getHTML()
-        onChange(html)
+        onChange(newContent)
       } catch (error) {
-        console.error("Error updating editor content:", error)
-        setDebugInfo(`Update error: ${error}`)
+        console.error("Error updating content:", error)
       }
     },
-    onCreate: ({ editor }) => {
-      setEditorReady(true)
-      setDebugInfo("Editor created successfully")
-    },
-    onError: ({ error }) => {
-      console.error("Tiptap editor error:", error)
-      setDebugInfo(`Editor error: ${error}`)
-      setFallbackMode(true)
-    },
-    editorProps: {
-      attributes: {
-        class: "min-h-[200px] p-4 border-0 focus:outline-none prose prose-sm max-w-none",
-        style: "outline: none;",
+    [onChange],
+  )
+
+  const editor = useEditor(
+    {
+      extensions: [
+        StarterKit.configure({
+          heading: {
+            levels: [1, 2, 3],
+          },
+          bulletList: {
+            keepMarks: true,
+            keepAttributes: false,
+          },
+          orderedList: {
+            keepMarks: true,
+            keepAttributes: false,
+          },
+        }),
+        Link.configure({
+          openOnClick: false,
+          HTMLAttributes: {
+            class: "text-sky-600 underline hover:text-sky-700",
+          },
+        }),
+        Underline,
+      ],
+      content: content || "",
+      onUpdate: ({ editor }) => {
+        try {
+          const html = editor.getHTML()
+          handleContentChange(html)
+        } catch (error) {
+          console.error("Error in editor update:", error)
+          setEditorError("Error updating content")
+        }
+      },
+      onCreate: ({ editor }) => {
+        console.log("Editor created successfully")
+      },
+      onError: ({ error }) => {
+        console.error("Tiptap editor error:", error)
+        setEditorError(`Editor error: ${error.message}`)
+        setFallbackMode(true)
+      },
+      editorProps: {
+        attributes: {
+          class: "min-h-[200px] p-4 border-0 focus:outline-none prose prose-sm max-w-none",
+        },
       },
     },
-  })
-
-  // Fallback to textarea if editor fails
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!editor && !fallbackMode) {
-        console.warn("Tiptap editor failed to initialize, falling back to textarea")
-        setDebugInfo("Editor initialization timeout - using fallback")
-        setFallbackMode(true)
-      }
-    }, 3000) // 3 second timeout
-
-    return () => clearTimeout(timer)
-  }, [editor, fallbackMode])
+    [],
+  )
 
   // Update editor content when prop changes
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content || "")
+      try {
+        editor.commands.setContent(content || "")
+      } catch (error) {
+        console.error("Error setting editor content:", error)
+      }
     }
   }, [editor, content])
 
+  // Fallback to textarea if editor fails or not mounted
+  useEffect(() => {
+    if (mounted && !editor) {
+      const timer = setTimeout(() => {
+        console.warn("Tiptap editor failed to initialize, using fallback")
+        setFallbackMode(true)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [mounted, editor])
+
   const addLink = () => {
     if (linkUrl && editor) {
-      editor.chain().focus().extendMarkRange("link").setLink({ href: linkUrl }).run()
-      setLinkUrl("")
-      setLinkDialogOpen(false)
+      try {
+        editor.chain().focus().extendMarkRange("link").setLink({ href: linkUrl }).run()
+        setLinkUrl("")
+        setLinkDialogOpen(false)
+      } catch (error) {
+        console.error("Error adding link:", error)
+      }
     }
   }
 
   const removeLink = () => {
     if (editor) {
-      editor.chain().focus().unsetLink().run()
+      try {
+        editor.chain().focus().unsetLink().run()
+      } catch (error) {
+        console.error("Error removing link:", error)
+      }
     }
   }
 
+  // Don't render anything until mounted (prevents SSR issues)
+  if (!mounted) {
+    return (
+      <div className="min-h-[200px] border rounded-md flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sky-600 mx-auto mb-2"></div>
+          <div className="text-sm text-gray-500">Loading editor...</div>
+        </div>
+      </div>
+    )
+  }
+
   // Fallback textarea mode
-  if (fallbackMode || !editor) {
+  if (fallbackMode || !editor || editorError) {
     return (
       <div className="space-y-2">
-        <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
-          Rich text editor unavailable. Using basic text editor.
-          {debugInfo && <div className="text-xs mt-1">Debug: {debugInfo}</div>}
-        </div>
+        {editorError && (
+          <div className="text-sm text-amber-600 bg-amber-50 p-2 rounded border">
+            Rich text editor unavailable. Using basic text editor.
+            <div className="text-xs mt-1">Error: {editorError}</div>
+          </div>
+        )}
         <Textarea
           value={content}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => handleContentChange(e.target.value)}
           placeholder={placeholder}
           className="min-h-[200px] font-mono text-sm"
           rows={10}
@@ -158,13 +197,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
 
   return (
     <div className="border rounded-md overflow-hidden">
-      {/* Debug info in development */}
-      {process.env.NODE_ENV === "development" && debugInfo && (
-        <div className="bg-blue-50 text-blue-700 p-2 text-xs border-b">
-          Debug: {debugInfo} | Ready: {editorReady ? "Yes" : "No"}
-        </div>
-      )}
-
       {/* Toolbar */}
       <div className="border-b p-2 flex flex-wrap gap-1 bg-gray-50">
         <Button
@@ -173,7 +205,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           size="sm"
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={editor.isActive("bold") ? "bg-gray-200" : ""}
-          disabled={!editorReady}
         >
           <Bold className="h-4 w-4" />
         </Button>
@@ -183,7 +214,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           size="sm"
           onClick={() => editor.chain().focus().toggleItalic().run()}
           className={editor.isActive("italic") ? "bg-gray-200" : ""}
-          disabled={!editorReady}
         >
           <Italic className="h-4 w-4" />
         </Button>
@@ -193,7 +223,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           size="sm"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           className={editor.isActive("underline") ? "bg-gray-200" : ""}
-          disabled={!editorReady}
         >
           <UnderlineIcon className="h-4 w-4" />
         </Button>
@@ -203,7 +232,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           size="sm"
           onClick={() => editor.chain().focus().toggleStrike().run()}
           className={editor.isActive("strike") ? "bg-gray-200" : ""}
-          disabled={!editorReady}
         >
           <Strikethrough className="h-4 w-4" />
         </Button>
@@ -216,7 +244,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           size="sm"
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           className={editor.isActive("heading", { level: 1 }) ? "bg-gray-200" : ""}
-          disabled={!editorReady}
         >
           <Heading1 className="h-4 w-4" />
         </Button>
@@ -226,7 +253,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           size="sm"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className={editor.isActive("heading", { level: 2 }) ? "bg-gray-200" : ""}
-          disabled={!editorReady}
         >
           <Heading2 className="h-4 w-4" />
         </Button>
@@ -236,7 +262,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           size="sm"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           className={editor.isActive("heading", { level: 3 }) ? "bg-gray-200" : ""}
-          disabled={!editorReady}
         >
           <Heading3 className="h-4 w-4" />
         </Button>
@@ -249,7 +274,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           size="sm"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={editor.isActive("bulletList") ? "bg-gray-200" : ""}
-          disabled={!editorReady}
         >
           <List className="h-4 w-4" />
         </Button>
@@ -259,7 +283,6 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           size="sm"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className={editor.isActive("orderedList") ? "bg-gray-200" : ""}
-          disabled={!editorReady}
         >
           <ListOrdered className="h-4 w-4" />
         </Button>
@@ -268,13 +291,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
 
         <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
           <DialogTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className={editor.isActive("link") ? "bg-gray-200" : ""}
-              disabled={!editorReady}
-            >
+            <Button type="button" variant="ghost" size="sm" className={editor.isActive("link") ? "bg-gray-200" : ""}>
               <LinkIcon className="h-4 w-4" />
             </Button>
           </DialogTrigger>
@@ -320,7 +337,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo() || !editorReady}
+          disabled={!editor.can().undo()}
         >
           <Undo className="h-4 w-4" />
         </Button>
@@ -329,7 +346,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
           variant="ghost"
           size="sm"
           onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo() || !editorReady}
+          disabled={!editor.can().redo()}
         >
           <Redo className="h-4 w-4" />
         </Button>
@@ -337,15 +354,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Start writing
 
       {/* Editor Content */}
       <div className="min-h-[200px] bg-white">
-        {!editorReady && (
-          <div className="flex items-center justify-center h-[200px] text-gray-500">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sky-600 mx-auto mb-2"></div>
-              <div className="text-sm">Loading editor...</div>
-            </div>
-          </div>
-        )}
-        <EditorContent editor={editor} className={`${!editorReady ? "opacity-0" : "opacity-100"} transition-opacity`} />
+        <EditorContent editor={editor} />
       </div>
     </div>
   )

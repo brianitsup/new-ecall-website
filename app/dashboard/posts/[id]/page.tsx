@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RichTextEditor } from "@/components/rich-text-editor"
+import { SimpleEditor } from "@/components/simple-editor"
 import { useToast } from "@/hooks/use-toast"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
@@ -35,6 +36,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(!isNewPost)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [useSimpleEditor, setUseSimpleEditor] = useState(false)
 
   const supabase = createClientComponentClient()
 
@@ -182,21 +184,6 @@ export default function PostPage({ params }: { params: { id: string } }) {
         })
       }
 
-      // Show success toast and redirect immediately
-      if (isNewPost) {
-        toast({
-          variant: "success",
-          title: "Post Created Successfully!",
-          description: `"${formData.title}" has been published and is now live.`,
-        })
-      } else {
-        toast({
-          variant: "success",
-          title: "Post Updated Successfully!",
-          description: `"${formData.title}" has been updated.`,
-        })
-      }
-
       // Reset saving state
       setSaving(false)
 
@@ -331,14 +318,31 @@ export default function PostPage({ params }: { params: { id: string } }) {
 
           <div className="space-y-4 lg:col-span-2">
             <div className="space-y-2">
-              <Label htmlFor="content">Content</Label>
-              <RichTextEditor
-                content={formData.content}
-                onChange={handleContentChange}
-                placeholder="Write your post content here..."
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="content">Content</Label>
+                <Button type="button" variant="outline" size="sm" onClick={() => setUseSimpleEditor(!useSimpleEditor)}>
+                  {useSimpleEditor ? "Use Rich Editor" : "Use Simple Editor"}
+                </Button>
+              </div>
+
+              {useSimpleEditor ? (
+                <SimpleEditor
+                  content={formData.content}
+                  onChange={handleContentChange}
+                  placeholder="Write your post content here..."
+                />
+              ) : (
+                <RichTextEditor
+                  content={formData.content}
+                  onChange={handleContentChange}
+                  placeholder="Write your post content here..."
+                />
+              )}
+
               <p className="text-xs text-gray-500">
-                Use the toolbar above to format your content. You can add headings, lists, links, and more.
+                {useSimpleEditor
+                  ? "Use **bold**, *italic*, and [links](url) for formatting. Start lines with '- ' for lists."
+                  : "Use the toolbar above to format your content. You can add headings, lists, links, and more."}
               </p>
             </div>
           </div>
