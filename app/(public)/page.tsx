@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import {
   ArrowRight,
   Clock,
@@ -48,12 +49,15 @@ export default function Home() {
               </div>
             </div>
             <div className="mx-auto lg:ml-auto">
-              <img
+              <Image
                 alt="eCall Health Center"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
-                height="550"
-                src="/images/hero.jpeg?height=550&width=800"
-                width="800"
+                height={550}
+                src="/images/hero.jpeg"
+                width={800}
+                priority
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAAcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
               />
             </div>
           </div>
@@ -202,12 +206,12 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="mx-auto lg:order-last">
-              <img
+              <Image
                 alt="Dr. Lazarus Tavichikai"
                 className="mx-auto aspect-square overflow-hidden rounded-xl object-cover object-center sm:w-full"
-                height="400"
-                src="/images/lazarus-tavichikai.webp?height=400&width=400"
-                width="400"
+                height={400}
+                src="/images/lazarus-tavichikai.webp"
+                width={400}
               />
             </div>
             <div className="flex flex-col justify-center space-y-4">
@@ -253,12 +257,12 @@ export default function Home() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="aspect-video overflow-hidden rounded-lg">
-                  <img
+                  <Image
                     alt="Alvaro, Point Cruz Location"
                     className="object-cover w-full h-full"
-                    height="300"
-                    src="/images/ecall-alvaro.webp?height=300&width=500"
-                    width="500"
+                    height={300}
+                    src="/images/ecall-alvaro.webp"
+                    width={500}
                   />
                 </div>
                 <div className="flex items-start gap-2 text-gray-500">
@@ -281,12 +285,12 @@ export default function Home() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="aspect-video overflow-hidden rounded-lg">
-                  <img
+                  <Image
                     alt="Henderson Court Location"
                     className="object-cover w-full h-full"
-                    height="300"
-                    src="/images/ecall-henderson.jpeg?height=300&width=500"
-                    width="500"
+                    height={300}
+                    src="/images/ecall-henderson.jpeg"
+                    width={500}
                   />
                 </div>
                 <div className="flex items-start gap-2 text-gray-500">

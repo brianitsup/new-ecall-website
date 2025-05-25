@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 
@@ -40,12 +41,12 @@ export default function AboutPage() {
               </div>
             </div>
             <div className="mx-auto lg:ml-auto">
-              <img
+              <Image
                 alt="eCall Health Center Mission"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
-                height="550"
+                height={550}
                 src="/placeholder.svg?height=550&width=800"
-                width="800"
+                width={800}
               />
             </div>
           </div>
@@ -57,12 +58,12 @@ export default function AboutPage() {
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="mx-auto lg:order-last">
-              <img
+              <Image
                 alt="eCall Health Center Medical Team"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
-                height="400"
-                src="/images/ecall-specialists.jpeg?height=400&width=600"
-                width="600"
+                height={400}
+                src="/images/ecall-specialists.jpeg"
+                width={600}
               />
             </div>
             <div className="flex flex-col justify-center space-y-4">

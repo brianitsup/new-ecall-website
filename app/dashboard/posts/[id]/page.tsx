@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Save, Upload, X } from "lucide-react"
+import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -292,9 +293,11 @@ export default function PostPage({ params }: { params: { id: string } }) {
               <Label>Featured Image</Label>
               {formData.imageUrl || formData.currentImageUrl ? (
                 <div className="relative rounded-md overflow-hidden">
-                  <img
+                  <Image
                     src={formData.imageUrl || formData.currentImageUrl}
                     alt="Preview"
+                    width={400}
+                    height={192}
                     className="w-full h-48 object-cover"
                   />
                   <Button

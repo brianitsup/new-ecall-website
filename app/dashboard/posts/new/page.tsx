@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import Image from "next/image"
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -181,9 +182,11 @@ export default function NewPostPage() {
               <Label>Featured Image</Label>
               {formData.imageUrl ? (
                 <div className="relative rounded-md overflow-hidden">
-                  <img
+                  <Image
                     src={formData.imageUrl || "/placeholder.svg"}
                     alt="Preview"
+                    width={400}
+                    height={192}
                     className="w-full h-48 object-cover"
                   />
                   <Button

@@ -1,53 +1,15 @@
 "use client"
-
-import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, Calendar, Facebook, Linkedin, Twitter, ArrowRight } from "lucide-react"
+import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { usePost, useRelatedPosts } from "@/hooks/use-posts"
 
 export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  const [post, setPost] = useState<any>(null)
-  const [relatedPosts, setRelatedPosts] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const supabase = createClientComponentClient()
-
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        // Fetch the current post
-        const { data, error } = await supabase.from("posts").select("*").eq("id", params.slug).single()
-
-        if (error) throw error
-        setPost(data)
-
-        // Fetch related posts (same category, excluding current post)
-        if (data) {
-          const { data: related, error: relatedError } = await supabase
-            .from("posts")
-            .select("id, title, excerpt, category, image, created_at")
-            .eq("category", data.category)
-            .neq("id", data.id)
-            .order("created_at", { ascending: false })
-            .limit(3)
-
-          if (relatedError) throw relatedError
-          setRelatedPosts(related || [])
-        }
-      } catch (error: any) {
-        console.error("Error fetching post:", error)
-        setError(error.message || "Failed to load post")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchPost()
-  }, [params.slug])
+  const { post, loading, error } = usePost(params.slug)
+  const { relatedPosts, loading: relatedLoading } = useRelatedPosts(post?.category || "", params.slug, 3)
 
   if (loading) {
     return (
@@ -131,13 +93,18 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
       <section className="w-full py-12 md:py-16 lg:py-20">
         <div className="container px-4 md:px-6">
           <div className="mx-auto max-w-3xl">
-            <div className="aspect-video overflow-hidden rounded-lg mb-8">
-              <img
-                src={post.image || "/placeholder.svg?height=500&width=1000"}
-                alt={post.title}
-                className="object-cover w-full h-full"
-              />
-            </div>
+            {post.image && (
+              <div className="aspect-video overflow-hidden rounded-lg mb-8">
+                <Image
+                  src={post.image || "/placeholder.svg"}
+                  alt={post.title}
+                  width={1000}
+                  height={500}
+                  className="object-cover w-full h-full"
+                  priority
+                />
+              </div>
+            )}
 
             {/* Social Share */}
             <div className="flex items-center gap-4 mb-8">
@@ -158,7 +125,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
 
             {/* Article Content */}
             <article className="prose prose-sky max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: post.content }} />
+              <div dangerouslySetInnerHTML={{ __html: post.content || "" }} />
             </article>
           </div>
         </div>
@@ -177,39 +144,61 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
               </div>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {relatedPosts.map((relatedPost) => (
-                <Card key={relatedPost.id} className="flex flex-col overflow-hidden border-0 shadow-sm">
-                  <div className="aspect-video overflow-hidden">
-                    <img
-                      src={relatedPost.image || "/placeholder.svg?height=300&width=600"}
-                      alt={relatedPost.title}
-                      className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                    />
-                  </div>
-                  <CardHeader className="flex-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                      <span className="inline-block px-2 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-medium">
-                        {relatedPost.category}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>{new Date(relatedPost.created_at).toLocaleDateString()}</span>
-                      </div>
+            {relatedLoading ? (
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(3)].map((_, index) => (
+                  <div key={index} className="flex flex-col overflow-hidden rounded-lg border shadow-sm">
+                    <div className="aspect-video animate-pulse bg-gray-200"></div>
+                    <div className="flex-1 p-6 space-y-4">
+                      <div className="h-6 w-2/3 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-4 animate-pulse rounded bg-gray-200"></div>
+                      <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200"></div>
                     </div>
-                    <CardTitle className="text-xl">{relatedPost.title}</CardTitle>
-                    <CardDescription className="line-clamp-3">{relatedPost.excerpt}</CardDescription>
-                  </CardHeader>
-                  <CardFooter>
-                    <Button asChild variant="ghost" className="p-0 h-auto font-medium text-sky-600 hover:text-sky-700">
-                      <Link href={`/updates/${relatedPost.id}`} className="flex items-center gap-1">
-                        Read More <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {relatedPosts.map((relatedPost) => (
+                  <Card key={relatedPost.id} className="flex flex-col overflow-hidden border-0 shadow-sm">
+                    <div className="aspect-video overflow-hidden">
+                      <Image
+                        src={relatedPost.image || "/placeholder.svg?height=300&width=600"}
+                        alt={relatedPost.title}
+                        width={600}
+                        height={300}
+                        className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                        loading="lazy"
+                      />
+                    </div>
+                    <CardHeader className="flex-1">
+                      <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                        <span className="inline-block px-2 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-medium">
+                          {relatedPost.category}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{new Date(relatedPost.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <CardTitle className="text-xl">{relatedPost.title}</CardTitle>
+                      <CardDescription className="line-clamp-3">{relatedPost.excerpt}</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        className="p-0 h-auto font-medium text-sky-600 hover:text-sky-700"
+                      >
+                        <Link href={`/updates/${relatedPost.id}`} className="flex items-center gap-1">
+                          Read More <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}

@@ -64,6 +64,7 @@ export default function LoginPage() {
                 width={40}
                 height={40}
                 className="h-10 w-auto"
+                priority
               />
               <span className="font-bold text-xl text-sky-600">eCall Health Center</span>
             </Link>

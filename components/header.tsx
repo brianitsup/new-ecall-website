@@ -15,7 +15,14 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logos/logo.png" alt="eCall Health Center Logo" width={32} height={32} className="h-8 w-auto" />
+            <Image
+              src="/logos/logo.png"
+              alt="eCall Health Center Logo"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+              priority
+            />
             <span className="font-bold text-xl text-sky-600">eCall Health Center</span>
           </Link>
         </div>

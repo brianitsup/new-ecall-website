@@ -82,7 +82,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <div className="flex h-16 items-center border-b px-6">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logos/logo.png" alt="eCall Health Center Logo" width={32} height={32} className="h-8 w-auto" />
+            <Image
+              src="/logos/logo.png"
+              alt="eCall Health Center Logo"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+              priority
+            />
             <span className="font-bold text-lg text-sky-600">eCall Admin</span>
           </Link>
         </div>

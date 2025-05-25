@@ -2,75 +2,57 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { FileText, ArrowRight, AlertTriangle, Database } from "lucide-react"
+import { FileText, ArrowRight, AlertTriangle, Database, TrendingUp, Users, Calendar } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { usePosts } from "@/hooks/use-posts"
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
     totalPosts: 0,
-    recentPosts: [],
+    thisMonthPosts: 0,
+    popularCategory: "",
   })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [tableExists, setTableExists] = useState(true)
 
-  const supabase = createClientComponentClient()
+  // Get recent posts for the dashboard
+  const {
+    posts: recentPosts,
+    loading,
+    error,
+    totalCount,
+  } = usePosts({
+    limit: 5,
+    selectFields: "id, title, created_at, category",
+  })
 
+  // Calculate additional stats
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        // Check if the posts table exists
-        const { error: tableCheckError } = await supabase.from("posts").select("id").limit(1).single()
+    if (recentPosts.length > 0) {
+      const thisMonth = new Date()
+      thisMonth.setDate(1)
+      thisMonth.setHours(0, 0, 0, 0)
 
-        // If we get a specific error about the relation not existing
-        if (
-          tableCheckError &&
-          tableCheckError.message.includes("relation") &&
-          tableCheckError.message.includes("does not exist")
-        ) {
-          setTableExists(false)
-          setError("The posts table does not exist in the database yet.")
-          setLoading(false)
-          return
-        }
+      const thisMonthPosts = recentPosts.filter((post) => new Date(post.created_at) >= thisMonth).length
 
-        // If the table exists, proceed with fetching stats
-        if (!tableCheckError) {
-          // Get total posts count
-          const { count: totalPosts, error: countError } = await supabase
-            .from("posts")
-            .select("*", { count: "exact", head: true })
+      // Find most popular category
+      const categoryCount: Record<string, number> = {}
+      recentPosts.forEach((post) => {
+        categoryCount[post.category] = (categoryCount[post.category] || 0) + 1
+      })
 
-          if (countError) throw countError
+      const popularCategory = Object.entries(categoryCount).sort(([, a], [, b]) => b - a)[0]?.[0] || ""
 
-          // Get recent posts
-          const { data: recentPosts, error: postsError } = await supabase
-            .from("posts")
-            .select("id, title, created_at")
-            .order("created_at", { ascending: false })
-            .limit(5)
-
-          if (postsError) throw postsError
-
-          setStats({
-            totalPosts: totalPosts || 0,
-            recentPosts: recentPosts || [],
-          })
-        }
-      } catch (error: any) {
-        console.error("Error fetching dashboard stats:", error)
-        setError(error.message || "An error occurred while fetching dashboard statistics")
-      } finally {
-        setLoading(false)
-      }
+      setStats({
+        totalPosts: totalCount,
+        thisMonthPosts,
+        popularCategory,
+      })
     }
+  }, [recentPosts, totalCount])
 
-    fetchStats()
-  }, [])
+  const tableExists = !error?.includes("does not exist")
 
   return (
     <div className="space-y-6">
@@ -91,7 +73,7 @@ export default function DashboardPage() {
             <div className="mt-4">
               <h3 className="font-semibold mb-2">SQL to Create Posts Table:</h3>
               <pre className="bg-gray-800 text-white p-4 rounded-md text-sm overflow-x-auto">
-                {`-- Create posts table
+                {`-- Create posts table with performance optimizations
 CREATE TABLE IF NOT EXISTS posts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
@@ -104,21 +86,10 @@ CREATE TABLE IF NOT EXISTS posts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create storage for images (if needed)
-INSERT INTO storage.buckets (id, name, public) VALUES ('images', 'images', true)
-ON CONFLICT (id) DO NOTHING;
-
--- Set up storage policy to allow authenticated users to upload
-CREATE POLICY "Allow authenticated users to upload images"
-  ON storage.objects FOR INSERT
-  TO authenticated
-  WITH CHECK (bucket_id = 'images');
-
--- Set up storage policy to allow public to view images
-CREATE POLICY "Allow public to view images"
-  ON storage.objects FOR SELECT
-  TO public
-  USING (bucket_id = 'images');`}
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category);
+CREATE INDEX IF NOT EXISTS idx_posts_title_search ON posts USING gin(to_tsvector('english', title));`}
               </pre>
               <p className="mt-4 text-sm">
                 Run this SQL in the Supabase SQL Editor to create the necessary database structure.
@@ -136,7 +107,8 @@ CREATE POLICY "Allow public to view images"
         </Alert>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
@@ -144,18 +116,66 @@ CREATE POLICY "Allow public to view images"
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {loading ? <div className="h-8 w-16 animate-pulse rounded bg-gray-200"></div> : stats.totalPosts}
+              {loading ? (
+                <div className="h-8 w-16 animate-pulse rounded bg-gray-200"></div>
+              ) : tableExists ? (
+                stats.totalPosts
+              ) : (
+                "—"
+              )}
             </div>
             <p className="text-xs text-gray-500">Blog and update posts</p>
           </CardContent>
-          <CardFooter>
-            <Button asChild variant="ghost" className="p-0 h-auto text-sky-600 hover:text-sky-700">
-              <Link href="/dashboard/posts" className="flex items-center gap-1">
-                View all posts
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+            <TrendingUp className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? (
+                <div className="h-8 w-16 animate-pulse rounded bg-gray-200"></div>
+              ) : tableExists ? (
+                stats.thisMonthPosts
+              ) : (
+                "—"
+              )}
+            </div>
+            <p className="text-xs text-gray-500">Posts published this month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Popular Category</CardTitle>
+            <Users className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold">
+              {loading ? (
+                <div className="h-6 w-24 animate-pulse rounded bg-gray-200"></div>
+              ) : tableExists && stats.popularCategory ? (
+                stats.popularCategory
+              ) : (
+                "—"
+              )}
+            </div>
+            <p className="text-xs text-gray-500">Most used category</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
+            <Calendar className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full bg-sky-600 hover:bg-sky-700" disabled={!tableExists}>
+              <Link href="/dashboard/posts/new">Create New Post</Link>
             </Button>
-          </CardFooter>
+          </CardContent>
         </Card>
       </div>
 
@@ -177,13 +197,17 @@ CREATE POLICY "Allow public to view images"
                 <Database className="h-12 w-12 text-gray-300 mb-2" />
                 <p className="text-gray-500">Database setup required</p>
               </div>
-            ) : stats.recentPosts.length > 0 ? (
+            ) : recentPosts.length > 0 ? (
               <ul className="space-y-4">
-                {stats.recentPosts.map((post: any) => (
+                {recentPosts.map((post: any) => (
                   <li key={post.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{post.title}</p>
-                      <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleDateString()}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{post.title}</p>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span>{post.category}</span>
+                        <span>•</span>
+                        <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                      </div>
                     </div>
                     <Button asChild variant="ghost" size="sm">
                       <Link href={`/dashboard/posts/${post.id}`}>Edit</Link>
@@ -196,10 +220,45 @@ CREATE POLICY "Allow public to view images"
             )}
           </CardContent>
           <CardFooter>
-            <Button asChild variant="outline" disabled={!tableExists}>
-              <Link href={tableExists ? "/dashboard/posts/new" : "#"}>Create New Post</Link>
+            <Button asChild variant="outline" disabled={!tableExists} className="w-full">
+              <Link href={tableExists ? "/dashboard/posts" : "#"}>
+                View All Posts
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </CardFooter>
+        </Card>
+
+        <Card className="col-span-1">
+          <CardHeader>
+            <CardTitle>Performance Tips</CardTitle>
+            <CardDescription>Optimize your blog for better performance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3 text-sm">
+              <li className="flex items-start gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <p className="font-medium">Images are optimized</p>
+                  <p className="text-gray-500">Using Next.js Image component for better performance</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <p className="font-medium">Database queries optimized</p>
+                  <p className="text-gray-500">Selective field fetching and caching implemented</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <p className="font-medium">Pagination enabled</p>
+                  <p className="text-gray-500">Load more posts as needed for better performance</p>
+                </div>
+              </li>
+            </ul>
+          </CardContent>
         </Card>
       </div>
     </div>

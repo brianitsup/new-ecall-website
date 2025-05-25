@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { PlusCircle, Edit, Trash2, Search, AlertTriangle, Database } from "lucide-react"
+import { PlusCircle, Edit, Trash2, Search, AlertTriangle, Database, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,58 +20,37 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { usePosts } from "@/hooks/use-posts"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function PostsPage() {
-  const [posts, setPosts] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const [deletePostId, setDeletePostId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [tableExists, setTableExists] = useState(true)
 
   const supabase = createClientComponentClient()
   const { toast } = useToast()
 
+  // Debounce search
   useEffect(() => {
-    fetchPosts()
-  }, [])
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
-  const fetchPosts = async () => {
-    try {
-      setLoading(true)
+  const { posts, loading, error, totalCount, hasMore, loadMore, refresh } = usePosts({
+    limit: 20,
+    category: selectedCategory || undefined,
+    searchQuery: debouncedSearch || undefined,
+    selectFields: "id, title, category, created_at, updated_at",
+  })
 
-      // Check if the posts table exists
-      const { error: tableCheckError } = await supabase.from("posts").select("id").limit(1).single()
-
-      // If we get a specific error about the relation not existing
-      if (
-        tableCheckError &&
-        tableCheckError.message.includes("relation") &&
-        tableCheckError.message.includes("does not exist")
-      ) {
-        setTableExists(false)
-        setError("The posts table does not exist in the database yet.")
-        setLoading(false)
-        return
-      }
-
-      // If the table exists, proceed with fetching posts
-      if (!tableCheckError) {
-        const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false })
-
-        if (error) throw error
-        setPosts(data || [])
-      }
-    } catch (error: any) {
-      console.error("Error fetching posts:", error)
-      setError(error.message || "An error occurred while fetching posts")
-    } finally {
-      setLoading(false)
-    }
-  }
+  const categories = ["Clinic News", "Health Tips", "Programs", "Community Outreach", "Public Health", "Events"]
 
   const handleDeletePost = async () => {
     if (!deletePostId) return
@@ -87,9 +66,6 @@ export default function PostsPage() {
 
       if (error) throw error
 
-      // Remove the deleted post from the state
-      setPosts(posts.filter((post) => post.id !== deletePostId))
-
       // Show success toast
       toast({
         variant: "success",
@@ -97,11 +73,13 @@ export default function PostsPage() {
         description: `"${postTitle}" has been permanently deleted.`,
       })
 
+      // Refresh the posts list
+      await refresh()
+
       // Reset delete state
       setDeletePostId(null)
     } catch (error: any) {
       console.error("Error deleting post:", error)
-      setError(error.message || "An error occurred while deleting the post")
 
       // Show error toast
       toast({
@@ -114,12 +92,8 @@ export default function PostsPage() {
     }
   }
 
-  const filteredPosts = posts.filter(
-    (post) =>
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.category.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+  // Check if table exists by looking at the error
+  const tableExists = !error?.includes("does not exist")
 
   return (
     <div className="space-y-6">
@@ -161,6 +135,12 @@ CREATE TABLE IF NOT EXISTS posts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category);
+CREATE INDEX IF NOT EXISTS idx_posts_title_search ON posts USING gin(to_tsvector('english', title));
+CREATE INDEX IF NOT EXISTS idx_posts_content_search ON posts USING gin(to_tsvector('english', content));
+
 -- Create storage for images (if needed)
 INSERT INTO storage.buckets (id, name, public) VALUES ('images', 'images', true)
 ON CONFLICT (id) DO NOTHING;
@@ -178,7 +158,8 @@ CREATE POLICY "Allow public to view images"
   USING (bucket_id = 'images');`}
               </pre>
               <p className="mt-4 text-sm">
-                Run this SQL in the Supabase SQL Editor to create the necessary database structure.
+                Run this SQL in the Supabase SQL Editor to create the necessary database structure with performance
+                optimizations.
               </p>
             </div>
           </AlertDescription>
@@ -204,7 +185,8 @@ CREATE POLICY "Allow public to view images"
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-4">
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
               <Input
@@ -214,33 +196,90 @@ CREATE POLICY "Allow public to view images"
                 className="pl-9"
               />
             </div>
+            <Select
+              value={selectedCategory || "all"}
+              onValueChange={(value) => setSelectedCategory(value === "all" ? "" : value)}
+            >
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {loading ? (
+          {/* Results count */}
+          {!loading && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-500">
+                {totalCount === 0 ? "No posts found" : `${totalCount} post${totalCount === 1 ? "" : "s"} found`}
+                {(searchQuery || selectedCategory) && (
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto ml-2 text-sky-600"
+                    onClick={() => {
+                      setSearchQuery("")
+                      setSelectedCategory("")
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+              {hasMore && (
+                <Button onClick={loadMore} variant="outline" size="sm" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    "Load More"
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {loading && posts.length === 0 ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="h-16 animate-pulse rounded bg-gray-200"></div>
               ))}
             </div>
-          ) : filteredPosts.length > 0 ? (
+          ) : posts.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Title</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Updated</TableHead>
                     <TableHead className="w-[100px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPosts.map((post) => (
+                  {posts.map((post) => (
                     <TableRow key={post.id}>
-                      <TableCell className="font-medium">{post.title}</TableCell>
+                      <TableCell className="font-medium max-w-xs">
+                        <div className="truncate">{post.title}</div>
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">{post.category}</Badge>
                       </TableCell>
-                      <TableCell>{new Date(post.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {new Date(post.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {post.updated_at ? new Date(post.updated_at).toLocaleDateString() : "-"}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button asChild variant="ghost" size="icon">
@@ -277,7 +316,7 @@ CREATE POLICY "Allow public to view images"
                                 >
                                   {deleting ? (
                                     <>
-                                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                       Deleting...
                                     </>
                                   ) : (
@@ -299,9 +338,11 @@ CREATE POLICY "Allow public to view images"
               <div className="text-center">
                 <h3 className="text-lg font-medium">No posts found</h3>
                 <p className="text-gray-500">
-                  {searchQuery ? `No posts matching "${searchQuery}"` : "You haven't created any posts yet."}
+                  {searchQuery || selectedCategory
+                    ? `No posts matching your criteria`
+                    : "You haven't created any posts yet."}
                 </p>
-                {!searchQuery && (
+                {!searchQuery && !selectedCategory && (
                   <Button asChild className="mt-4 bg-sky-600 hover:bg-sky-700">
                     <Link href="/dashboard/posts/new">Create your first post</Link>
                   </Button>
