@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RichTextEditor } from "@/components/rich-text-editor"
+import { LexicalEditor } from "@/components/lexical-editor"
 import { useToast } from "@/hooks/use-toast"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
@@ -306,7 +306,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
           <div className="space-y-4 lg:col-span-2">
             <div className="space-y-2">
               <Label htmlFor="content">Content</Label>
-              <RichTextEditor
+              <LexicalEditor
                 content={formData.content}
                 onChange={handleContentChange}
                 placeholder="Write your post content here..."
