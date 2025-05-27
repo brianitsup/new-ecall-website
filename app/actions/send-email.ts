@@ -70,7 +70,7 @@ function createTransporter() {
     throw new Error("SMTP configuration is incomplete")
   }
 
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number.parseInt(process.env.SMTP_PORT || "587"),
     secure: false, // true for 465, false for other ports
@@ -138,7 +138,7 @@ function generateEmailHTML(data: ContactFormData): string {
           </div>
         </div>
         <div class="footer">
-          <p>This email was sent from the eCall Health Center website contact form.</p>
+          <p>This email was sent from the eCall Health Center website contact form to hello@ecall.com.sb.</p>
           <p>Submitted on: ${new Date().toLocaleString()}</p>
         </div>
       </div>
@@ -150,6 +150,7 @@ function generateEmailHTML(data: ContactFormData): string {
 function generateEmailText(data: ContactFormData): string {
   return `
 New Contact Form Submission - eCall Health Center
+Sent to: hello@ecall.com.sb
 
 Name: ${data.name}
 Email: ${data.email}

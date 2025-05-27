@@ -275,7 +275,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2 text-gray-500">
                   <Mail className="h-4 w-4" />
-                  <p>enquiries@ecall.com.sb</p>
+                  <p>hello@ecall.com.sb</p>
                 </div>
               </CardContent>
             </Card>
@@ -303,7 +303,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center gap-2 text-gray-500">
                   <Mail className="h-4 w-4" />
-                  <p>enquiries@ecall.com.sb</p>
+                  <p>hello@ecall.com.sb</p>
                 </div>
               </CardContent>
             </Card>
