@@ -1,10 +1,7 @@
 import { Mail, MapPin, Phone } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { ContactForm } from "@/components/contact-form"
 
 export default function ContactPage() {
   return (
@@ -26,7 +23,7 @@ export default function ContactPage() {
       {/* Contact Form and Info */}
       <section className="w-full py-12 md:py-16 lg:py-20">
         <div className="container px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
             <div className="flex flex-col gap-8">
               <div>
                 <h2 className="text-2xl font-bold">Get in Touch</h2>
@@ -34,25 +31,7 @@ export default function ContactPage() {
                   Fill out the form below and we'll get back to you as soon as possible.
                 </p>
               </div>
-              <form className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" placeholder="Enter your name" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="Enter your email" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" type="tel" placeholder="Enter your phone number" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea id="message" placeholder="Enter your message" className="min-h-[120px]" />
-                </div>
-                <Button className="bg-sky-600 hover:bg-sky-700">Send Message</Button>
-              </form>
+              <ContactForm />
             </div>
             <div className="flex flex-col gap-8">
               <div>
@@ -80,7 +59,7 @@ export default function ContactPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-5 w-5 text-sky-600" />
-                      <p className="text-sm text-gray-500">enquiries@ecall.com.sb</p>
+                      <p className="text-sm text-gray-500">hello@ecall.com.sb</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium">Opening Hours:</p>
@@ -108,7 +87,7 @@ export default function ContactPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-5 w-5 text-sky-600" />
-                      <p className="text-sm text-gray-500">enquiries@ecall.com.sb</p>
+                      <p className="text-sm text-gray-500">hello@ecall.com.sb</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium">Opening Hours (Clinic):</p>

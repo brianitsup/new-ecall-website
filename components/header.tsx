@@ -44,7 +44,7 @@ export function Header() {
           </Link>
         </nav>
         <div className="hidden md:flex">
-          <Button asChild className="bg-sky-600 hover:bg-sky-700">
+          <Button asChild className="bg-sky-600 hover:bg-sky-700 text-white">
             <Link href="/contact">Book Appointment</Link>
           </Button>
         </div>
@@ -90,7 +90,11 @@ export function Header() {
             >
               Contact
             </Link>
-            <Button asChild className="bg-sky-600 hover:bg-sky-700 w-full" onClick={() => setIsMenuOpen(false)}>
+            <Button
+              asChild
+              className="bg-sky-600 hover:bg-sky-700 text-white w-full"
+              onClick={() => setIsMenuOpen(false)}
+            >
               <Link href="/contact">Book Appointment</Link>
             </Button>
           </nav>
