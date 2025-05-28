@@ -74,12 +74,12 @@ export default function AboutPage() {
                   Tavichikai. Our team includes general practitioners, nurses, laboratory technicians, ultrasound
                   specialists, maternal health experts, and dental professionals.
                 </p>
-                <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed x2:text-x2/relaxed">
                   Each member of our team brings specialized expertise and a commitment to excellence in patient care.
                   Many of our specialists have international training and experience, combined with deep knowledge of
                   local health challenges and needs in the Solomon Islands.
                 </p>
-                <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed x2:text-x2/relaxed">
                   Together, our team works collaboratively to provide comprehensive, integrated healthcare services that
                   address both immediate medical needs and long-term health outcomes for our community.
                 </p>

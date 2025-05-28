@@ -348,32 +348,64 @@ export default function DrLazarusTavichikaiPage() {
       {/* Personal Life & Philosophy */}
       <section className="w-full py-12 md:py-16 lg:py-20">
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                "Healthcare is a fundamental right, not a privilege"
+          <div className="mx-auto max-w-4xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
+                Personal Philosophy & Life
               </h2>
-              <p className="max-w-[800px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Beyond his professional achievements, Dr. Tavichikai is a devoted husband and father of four. He
-                believes in creating a healthcare system that is accessible, affordable, and culturally sensitive to the
-                needs of Solomon Islands communities.
-              </p>
-              <p className="max-w-[800px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                In his personal time, he enjoys gardening, watching movies, reading, and recently has taken up writing
-                novels and screenplays. His approach combines modern medical practices with community health
-                initiatives, focusing on preventive care and health education.
-              </p>
             </div>
-            <div className="flex flex-col gap-2 min-[400px]:flex-row">
-              <Button asChild className="bg-sky-600 hover:bg-sky-700">
-                <Link href="/contact">Schedule Consultation</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/services" className="gap-1">
-                  Our Services
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+
+            <div className="space-y-8">
+              {/* Quote Section */}
+              <div className="bg-sky-50 rounded-lg p-8 text-center">
+                <blockquote className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  "Healthcare is a fundamental right, not a privilege"
+                </blockquote>
+                <cite className="text-sky-600 font-medium">- Dr. Lazarus Tavichikai</cite>
+              </div>
+
+              {/* Content Grid */}
+              <div className="grid gap-8 md:grid-cols-2">
+                <div className="space-y-4">
+                  <h3 className="text-xl font-bold text-gray-900">Personal Life</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Beyond his professional achievements, Dr. Tavichikai is a devoted husband and father of four. He
+                    believes in creating a healthcare system that is accessible, affordable, and culturally sensitive to
+                    the needs of Solomon Islands communities.
+                  </p>
+                  <p className="text-gray-600 leading-relaxed">
+                    In his personal time, he enjoys gardening, watching movies, reading, and recently has taken up
+                    writing novels and screenplays.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-xl font-bold text-gray-900">Healthcare Philosophy</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    His approach combines modern medical practices with community health initiatives, focusing on
+                    preventive care and health education to create lasting positive impacts on public health outcomes.
+                  </p>
+                  <p className="text-gray-600 leading-relaxed">
+                    Dr. Tavichikai's vision extends beyond traditional medical practice, emphasizing the importance of
+                    accessible healthcare for all Solomon Islands communities.
+                  </p>
+                </div>
+              </div>
+
+              {/* Call to Action */}
+              <div className="text-center pt-8">
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                  <Button asChild className="bg-sky-600 hover:bg-sky-700">
+                    <Link href="/contact">Schedule Consultation</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link href="/services" className="gap-1">
+                      Our Services
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
