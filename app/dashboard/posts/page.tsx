@@ -23,16 +23,14 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { usePosts } from "@/hooks/use-posts"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function PostsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [deletePostId, setDeletePostId] = useState<string | null>(null)
+  const [deletePostSlug, setDeletePostSlug] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  const supabase = createClientComponentClient()
   const { toast } = useToast()
 
   // Debounce search
@@ -47,28 +45,28 @@ export default function PostsPage() {
     limit: 20,
     category: selectedCategory || undefined,
     searchQuery: debouncedSearch || undefined,
-    selectFields: "id, title, category, created_at, updated_at, slug",
+    published: undefined, // Show all posts in admin
   })
 
   const categories = ["Clinic News", "Health Tips", "Programs", "Community Outreach", "Public Health", "Events"]
 
   const handleDeletePost = async () => {
-    if (!deletePostId) return
+    if (!deletePostSlug) return
 
     try {
       setDeleting(true)
 
       // Find the post to get its title for the toast
-      const postToDelete = posts.find((post) => post.id === deletePostId)
+      const postToDelete = posts.find((post) => post.slug === deletePostSlug)
       const postTitle = postToDelete?.title || "Post"
 
-      const { error } = await supabase.from("posts").delete().eq("id", deletePostId)
+      const { supabase } = await import("@/lib/supabase")
+      const { error } = await supabase.from("posts").delete().eq("slug", deletePostSlug)
 
       if (error) throw error
 
       // Show success toast
       toast({
-        variant: "success",
         title: "Post Deleted Successfully!",
         description: `"${postTitle}" has been permanently deleted.`,
       })
@@ -77,7 +75,7 @@ export default function PostsPage() {
       await refresh()
 
       // Reset delete state
-      setDeletePostId(null)
+      setDeletePostSlug(null)
     } catch (error: any) {
       console.error("Error deleting post:", error)
 
@@ -128,9 +126,11 @@ CREATE TABLE IF NOT EXISTS posts (
   title TEXT NOT NULL,
   excerpt TEXT NOT NULL,
   content TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
   category TEXT NOT NULL,
   image TEXT,
   author TEXT NOT NULL DEFAULT 'Admin',
+  published BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -138,28 +138,11 @@ CREATE TABLE IF NOT EXISTS posts (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category);
-CREATE INDEX IF NOT EXISTS idx_posts_title_search ON posts USING gin(to_tsvector('english', title));
-CREATE INDEX IF NOT EXISTS idx_posts_content_search ON posts USING gin(to_tsvector('english', content));
-
--- Create storage for images (if needed)
-INSERT INTO storage.buckets (id, name, public) VALUES ('images', 'images', true)
-ON CONFLICT (id) DO NOTHING;
-
--- Set up storage policy to allow authenticated users to upload
-CREATE POLICY "Allow authenticated users to upload images"
-  ON storage.objects FOR INSERT
-  TO authenticated
-  WITH CHECK (bucket_id = 'images');
-
--- Set up storage policy to allow public to view images
-CREATE POLICY "Allow public to view images"
-  ON storage.objects FOR SELECT
-  TO public
-  USING (bucket_id = 'images');`}
+CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
+CREATE INDEX IF NOT EXISTS idx_posts_published ON posts(published);`}
               </pre>
               <p className="mt-4 text-sm">
-                Run this SQL in the Supabase SQL Editor to create the necessary database structure with performance
-                optimizations.
+                Run this SQL in the Supabase SQL Editor to create the necessary database structure.
               </p>
             </div>
           </AlertDescription>
@@ -260,6 +243,7 @@ CREATE POLICY "Allow public to view images"
                   <TableRow>
                     <TableHead>Title</TableHead>
                     <TableHead>Category</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Updated</TableHead>
                     <TableHead className="w-[100px]">Actions</TableHead>
@@ -274,6 +258,11 @@ CREATE POLICY "Allow public to view images"
                       <TableCell>
                         <Badge variant="outline">{post.category}</Badge>
                       </TableCell>
+                      <TableCell>
+                        <Badge variant={post.published ? "default" : "secondary"}>
+                          {post.published ? "Published" : "Draft"}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-sm text-gray-500">
                         {new Date(post.created_at).toLocaleDateString()}
                       </TableCell>
@@ -283,7 +272,7 @@ CREATE POLICY "Allow public to view images"
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button asChild variant="ghost" size="icon">
-                            <Link href={`/dashboard/posts/${post.slug}`}>
+                            <Link href={`/dashboard/posts/${post.slug || post.id}`}>
                               <Edit className="h-4 w-4" />
                               <span className="sr-only">Edit</span>
                             </Link>
@@ -294,7 +283,7 @@ CREATE POLICY "Allow public to view images"
                                 variant="ghost"
                                 size="icon"
                                 className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                onClick={() => setDeletePostId(post.id)}
+                                onClick={() => setDeletePostSlug(post.slug || post.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
                                 <span className="sr-only">Delete</span>
@@ -308,7 +297,7 @@ CREATE POLICY "Allow public to view images"
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel onClick={() => setDeletePostId(null)}>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel onClick={() => setDeletePostSlug(null)}>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
                                   className="bg-red-600 hover:bg-red-700"
                                   onClick={handleDeletePost}
