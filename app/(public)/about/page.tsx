@@ -83,6 +83,14 @@ export default function AboutPage() {
                   Together, our team works collaboratively to provide comprehensive, integrated healthcare services that
                   address both immediate medical needs and long-term health outcomes for our community.
                 </p>
+                <div className="pt-4">
+                  <Button asChild variant="outline" className="gap-1">
+                    <Link href="/about/dr-lazarus-tavichikai">
+                      Read Dr. Lazarus's Full Biography
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

@@ -226,12 +226,15 @@ export default function Home() {
                   health system and contributing to better health outcomes across the Solomon Islands.
                 </p>
               </div>
-              <div>
+              <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button asChild variant="outline" className="gap-1">
-                  <Link href="/about">
-                    Learn More About Us
+                  <Link href="/about/dr-lazarus-tavichikai">
+                    About Dr. Lazarus
                     <ArrowRight className="h-4 w-4" />
                   </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/about">Learn More About Us</Link>
                 </Button>
               </div>
             </div>
