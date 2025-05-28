@@ -1,6 +1,6 @@
 "use client"
 
-import { PostsList } from "@/components/posts-list"
+import PostsList from "@/components/posts-list"
 
 export default function UpdatesPage() {
   return (

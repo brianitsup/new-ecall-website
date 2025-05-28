@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-
+import React from "react"
 import { useState, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
@@ -21,7 +20,7 @@ interface PostsListProps {
   className?: string
 }
 
-export function PostsList({
+export default function PostsList({
   showSearch = true,
   showCategoryFilter = true,
   showLoadMore = true,
@@ -41,16 +40,16 @@ export function PostsList({
   }, [])
 
   // Update debounced search when searchQuery changes
-  useState(() => {
+  React.useEffect(() => {
     const cleanup = debounceSearch(searchQuery)
     return cleanup
-  })
+  }, [searchQuery, debounceSearch])
 
   const { posts, loading, error, totalCount, hasMore, loadMore, refresh } = usePosts({
     limit,
     category: selectedCategory || undefined,
     searchQuery: debouncedSearch || undefined,
-    selectFields: "id, title, excerpt, category, image, author, created_at",
+    published: true,
   })
 
   const categories = ["Clinic News", "Health Tips", "Programs", "Community Outreach", "Public Health", "Events"]
@@ -176,7 +175,7 @@ export function PostsList({
                 </CardHeader>
                 <CardFooter>
                   <Button asChild variant="ghost" className="p-0 h-auto font-medium text-sky-600 hover:text-sky-700">
-                    <Link href={`/updates/${post.id}`} className="flex items-center gap-1">
+                    <Link href={`/updates/${post.slug}`} className="flex items-center gap-1">
                       Read More <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>

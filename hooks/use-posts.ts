@@ -1,18 +1,20 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { supabase } from "@/lib/supabase"
 
-interface Post {
+export interface Post {
   id: string
   title: string
+  content: string
   excerpt: string
-  content?: string
-  category: string
-  image: string | null
-  author: string
+  slug?: string
+  category?: string
+  image?: string | null
+  author?: string
+  published?: boolean
   created_at: string
-  updated_at: string
+  updated_at?: string
 }
 
 interface UsePostsOptions {
@@ -20,9 +22,7 @@ interface UsePostsOptions {
   offset?: number
   category?: string
   searchQuery?: string
-  selectFields?: string
-  orderBy?: string
-  orderDirection?: "asc" | "desc"
+  published?: boolean
 }
 
 interface UsePostsReturn {
@@ -35,39 +35,14 @@ interface UsePostsReturn {
   refresh: () => Promise<void>
 }
 
-// Cache for posts data
-const postsCache = new Map<string, { data: Post[]; timestamp: number; totalCount: number }>()
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
-
 export function usePosts(options: UsePostsOptions = {}): UsePostsReturn {
-  const {
-    limit = 10,
-    offset = 0,
-    category,
-    searchQuery,
-    selectFields = "id, title, excerpt, category, image, author, created_at",
-    orderBy = "created_at",
-    orderDirection = "desc",
-  } = options
+  const { limit = 10, offset = 0, category, searchQuery, published } = options
 
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState(0)
   const [currentOffset, setCurrentOffset] = useState(offset)
-
-  const supabase = createClientComponentClient()
-
-  // Generate cache key based on options
-  const getCacheKey = useCallback((opts: UsePostsOptions) => {
-    return JSON.stringify({
-      category: opts.category,
-      searchQuery: opts.searchQuery,
-      selectFields: opts.selectFields,
-      orderBy: opts.orderBy,
-      orderDirection: opts.orderDirection,
-    })
-  }, [])
 
   const fetchPosts = useCallback(
     async (isLoadMore = false, customOffset = 0) => {
@@ -77,53 +52,78 @@ export function usePosts(options: UsePostsOptions = {}): UsePostsReturn {
           setError(null)
         }
 
-        const cacheKey = getCacheKey(options)
-        const cached = postsCache.get(cacheKey)
+        // First, check what columns exist in the posts table
+        const { data: tableInfo, error: tableError } = await supabase.from("posts").select("*").limit(1)
 
-        // Check if we have valid cached data for initial load
-        if (!isLoadMore && cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-          setPosts(cached.data)
-          setTotalCount(cached.totalCount)
-          setLoading(false)
-          return
+        if (tableError) {
+          console.error("Error checking table structure:", tableError)
+          throw tableError
         }
 
-        // Build query
+        // Determine available columns
+        const hasPublished = tableInfo && tableInfo.length > 0 && "published" in tableInfo[0]
+        const hasSlug = tableInfo && tableInfo.length > 0 && "slug" in tableInfo[0]
+        const hasCategory = tableInfo && tableInfo.length > 0 && "category" in tableInfo[0]
+        const hasAuthor = tableInfo && tableInfo.length > 0 && "author" in tableInfo[0]
+
+        // Build query based on available columns
         let query = supabase
           .from("posts")
-          .select(selectFields, { count: "exact" })
-          .order(orderBy, { ascending: orderDirection === "asc" })
+          .select("*", { count: "exact" })
+          .order("created_at", { ascending: false })
           .range(customOffset, customOffset + limit - 1)
 
-        // Add filters
-        if (category) {
+        // Add filters only if columns exist
+        if (hasPublished && published !== undefined) {
+          query = query.eq("published", published)
+        }
+
+        if (hasCategory && category) {
           query = query.eq("category", category)
         }
 
         if (searchQuery) {
-          query = query.or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+          if (hasSlug) {
+            query = query.or(
+              `title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`,
+            )
+          } else {
+            query = query.or(
+              `title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`,
+            )
+          }
         }
 
         const { data, error: fetchError, count } = await query
 
-        if (fetchError) throw fetchError
+        if (fetchError) {
+          console.error("Error fetching posts:", fetchError)
+          throw fetchError
+        }
 
-        const newPosts = data || []
+        // Normalize the data to ensure consistent structure
+        const normalizedPosts = (data || []).map((post) => ({
+          id: post.id,
+          title: post.title || "Untitled",
+          content: post.content || "",
+          excerpt: post.excerpt || "",
+          slug: hasSlug ? post.slug : post.id,
+          category: hasCategory ? post.category : "General",
+          image: post.image || null,
+          author: hasAuthor ? post.author : "ECall Health Center",
+          published: hasPublished ? post.published : true,
+          created_at: post.created_at,
+          updated_at: post.updated_at || post.created_at,
+        }))
 
         if (isLoadMore) {
-          setPosts((prev) => [...prev, ...newPosts])
+          setPosts((prev) => [...prev, ...normalizedPosts])
         } else {
-          setPosts(newPosts)
-          // Cache the initial load
-          postsCache.set(cacheKey, {
-            data: newPosts,
-            timestamp: Date.now(),
-            totalCount: count || 0,
-          })
+          setPosts(normalizedPosts)
         }
 
         setTotalCount(count || 0)
-        setCurrentOffset(customOffset + newPosts.length)
+        setCurrentOffset(customOffset + normalizedPosts.length)
       } catch (error: any) {
         console.error("Error fetching posts:", error)
         setError(error.message || "Failed to fetch posts")
@@ -131,7 +131,7 @@ export function usePosts(options: UsePostsOptions = {}): UsePostsReturn {
         setLoading(false)
       }
     },
-    [supabase, selectFields, orderBy, orderDirection, limit, category, searchQuery, options, getCacheKey],
+    [limit, category, searchQuery, published],
   )
 
   const loadMore = useCallback(async () => {
@@ -140,12 +140,9 @@ export function usePosts(options: UsePostsOptions = {}): UsePostsReturn {
   }, [loading, currentOffset, totalCount, fetchPosts])
 
   const refresh = useCallback(async () => {
-    // Clear cache for this query
-    const cacheKey = getCacheKey(options)
-    postsCache.delete(cacheKey)
     setCurrentOffset(0)
     await fetchPosts(false, 0)
-  }, [fetchPosts, getCacheKey, options])
+  }, [fetchPosts])
 
   useEffect(() => {
     setCurrentOffset(0)
@@ -165,44 +162,62 @@ export function usePosts(options: UsePostsOptions = {}): UsePostsReturn {
   }
 }
 
-// Hook for single post with caching
-export function usePost(id: string) {
+// Hook for single post by slug or ID
+export function usePost(slugOrId: string) {
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const supabase = createClientComponentClient()
-
   useEffect(() => {
-    if (!id) return
+    if (!slugOrId) return
 
     const fetchPost = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        // Check cache first
-        const cacheKey = `post-${id}`
-        const cached = postsCache.get(cacheKey)
+        // First try to fetch by slug, then by ID
+        let query = supabase.from("posts").select("*")
 
-        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-          setPost(cached.data[0] || null)
-          setLoading(false)
-          return
+        // Check if the posts table has a slug column
+        const { data: tableInfo } = await supabase.from("posts").select("*").limit(1)
+
+        const hasSlug = tableInfo && tableInfo.length > 0 && "slug" in tableInfo[0]
+        const hasPublished = tableInfo && tableInfo.length > 0 && "published" in tableInfo[0]
+
+        if (hasSlug) {
+          query = query.eq("slug", slugOrId)
+        } else {
+          query = query.eq("id", slugOrId)
         }
 
-        const { data, error: fetchError } = await supabase.from("posts").select("*").eq("id", id).single()
+        if (hasPublished) {
+          query = query.eq("published", true)
+        }
 
-        if (fetchError) throw fetchError
+        const { data, error: fetchError } = await query.single()
 
-        setPost(data)
+        if (fetchError) {
+          console.error("Error fetching post:", fetchError)
+          throw fetchError
+        }
 
-        // Cache the post
-        postsCache.set(cacheKey, {
-          data: [data],
-          timestamp: Date.now(),
-          totalCount: 1,
-        })
+        // Normalize the post data
+        const normalizedPost = {
+          id: data.id,
+          title: data.title || "Untitled",
+          content: data.content || "",
+          excerpt: data.excerpt || "",
+          slug: hasSlug ? data.slug : data.id,
+          category: data.category || "General",
+          image: data.image || null,
+          author: data.author || "ECall Health Center",
+          published: hasPublished ? data.published : true,
+          created_at: data.created_at,
+          updated_at: data.updated_at || data.created_at,
+        }
+
+        setPost(normalizedPost)
       } catch (error: any) {
         console.error("Error fetching post:", error)
         setError(error.message || "Failed to fetch post")
@@ -212,38 +227,74 @@ export function usePost(id: string) {
     }
 
     fetchPost()
-  }, [id, supabase])
+  }, [slugOrId])
 
   return { post, loading, error }
 }
 
 // Hook for related posts
-export function useRelatedPosts(category: string, excludeId: string, limit = 3) {
+export function useRelatedPosts(category: string, excludeSlugOrId: string, limit = 3) {
   const [relatedPosts, setRelatedPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const supabase = createClientComponentClient()
-
   useEffect(() => {
-    if (!category || !excludeId) return
+    if (!category || !excludeSlugOrId) return
 
     const fetchRelatedPosts = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        const { data, error: fetchError } = await supabase
+        // Check table structure
+        const { data: tableInfo } = await supabase.from("posts").select("*").limit(1)
+
+        const hasSlug = tableInfo && tableInfo.length > 0 && "slug" in tableInfo[0]
+        const hasCategory = tableInfo && tableInfo.length > 0 && "category" in tableInfo[0]
+        const hasPublished = tableInfo && tableInfo.length > 0 && "published" in tableInfo[0]
+
+        let query = supabase
           .from("posts")
-          .select("id, title, excerpt, category, image, created_at")
-          .eq("category", category)
-          .neq("id", excludeId)
+          .select("id, title, excerpt, slug, category, image, author, created_at")
           .order("created_at", { ascending: false })
           .limit(limit)
 
-        if (fetchError) throw fetchError
+        if (hasCategory) {
+          query = query.eq("category", category)
+        }
 
-        setRelatedPosts(data || [])
+        if (hasPublished) {
+          query = query.eq("published", true)
+        }
+
+        if (hasSlug) {
+          query = query.neq("slug", excludeSlugOrId)
+        } else {
+          query = query.neq("id", excludeSlugOrId)
+        }
+
+        const { data, error: fetchError } = await query
+
+        if (fetchError) {
+          console.error("Error fetching related posts:", fetchError)
+          throw fetchError
+        }
+
+        const normalizedPosts = (data || []).map((post) => ({
+          id: post.id,
+          title: post.title || "Untitled",
+          content: "",
+          excerpt: post.excerpt || "",
+          slug: hasSlug ? post.slug : post.id,
+          category: post.category || "General",
+          image: post.image || null,
+          author: post.author || "ECall Health Center",
+          published: true,
+          created_at: post.created_at,
+          updated_at: post.created_at,
+        }))
+
+        setRelatedPosts(normalizedPosts)
       } catch (error: any) {
         console.error("Error fetching related posts:", error)
         setError(error.message || "Failed to fetch related posts")
@@ -253,7 +304,7 @@ export function useRelatedPosts(category: string, excludeId: string, limit = 3) 
     }
 
     fetchRelatedPosts()
-  }, [category, excludeId, limit, supabase])
+  }, [category, excludeSlugOrId, limit])
 
   return { relatedPosts, loading, error }
 }

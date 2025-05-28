@@ -24,7 +24,7 @@ export default function DashboardPage() {
     totalCount,
   } = usePosts({
     limit: 5,
-    selectFields: "id, title, created_at, category",
+    selectFields: "id, title, created_at, category, slug",
   })
 
   // Calculate additional stats
@@ -210,7 +210,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_title_search ON posts USING gin(to_tsvector
                       </div>
                     </div>
                     <Button asChild variant="ghost" size="sm">
-                      <Link href={`/dashboard/posts/${post.id}`}>Edit</Link>
+                      <Link href={`/dashboard/posts/${post.slug}`}>Edit</Link>
                     </Button>
                   </li>
                 ))}

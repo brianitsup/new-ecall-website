@@ -47,7 +47,7 @@ export default function PostsPage() {
     limit: 20,
     category: selectedCategory || undefined,
     searchQuery: debouncedSearch || undefined,
-    selectFields: "id, title, category, created_at, updated_at",
+    selectFields: "id, title, category, created_at, updated_at, slug",
   })
 
   const categories = ["Clinic News", "Health Tips", "Programs", "Community Outreach", "Public Health", "Events"]
@@ -283,7 +283,7 @@ CREATE POLICY "Allow public to view images"
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button asChild variant="ghost" size="icon">
-                            <Link href={`/dashboard/posts/${post.id}`}>
+                            <Link href={`/dashboard/posts/${post.slug}`}>
                               <Edit className="h-4 w-4" />
                               <span className="sr-only">Edit</span>
                             </Link>

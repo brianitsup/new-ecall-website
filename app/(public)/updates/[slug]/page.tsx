@@ -190,7 +190,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
                         variant="ghost"
                         className="p-0 h-auto font-medium text-sky-600 hover:text-sky-700"
                       >
-                        <Link href={`/updates/${relatedPost.id}`} className="flex items-center gap-1">
+                        <Link href={`/updates/${relatedPost.slug}`} className="flex items-center gap-1">
                           Read More <ArrowRight className="h-4 w-4" />
                         </Link>
                       </Button>
