@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, GraduationCap, Award, Heart, Users } from "lucide-react"
+import { ArrowLeft, ArrowRight, GraduationCap, Award, Heart, Users, Stethoscope, Globe } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -40,8 +40,9 @@ export default function DrLazarusTavichikaiPage() {
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Dr. Lazarus Tavichikai</h1>
                 <p className="text-xl text-sky-600 font-medium">Founder & Medical Director</p>
                 <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Leading healthcare innovation and community health initiatives in the Solomon Islands with over [X]
-                  years of medical experience and a passion for accessible healthcare.
+                  Leading healthcare innovation in the Solomon Islands with over 20 years of medical experience,
+                  specializing in radiology and diagnostic imaging, with a passion for accessible healthcare and public
+                  health.
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -61,7 +62,7 @@ export default function DrLazarusTavichikaiPage() {
                 alt="Dr. Lazarus Tavichikai - Founder and Medical Director of eCall Health Center"
                 className="mx-auto aspect-square overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
                 height={500}
-                src="/placeholder.svg?height=500&width=500&text=Dr.+Lazarus+Tavichikai"
+                src="/images/lazarus-tavichikai.webp"
                 width={500}
                 priority
               />
@@ -77,7 +78,8 @@ export default function DrLazarusTavichikaiPage() {
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Professional Background</h2>
               <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                A distinguished medical career dedicated to improving healthcare outcomes in the Solomon Islands.
+                A distinguished medical career spanning over two decades, from medical internship to founding eCall
+                Health Center.
               </p>
             </div>
           </div>
@@ -92,16 +94,20 @@ export default function DrLazarusTavichikaiPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <h4 className="font-medium">[Medical Degree]</h4>
-                  <p className="text-sm text-gray-500">[University Name], [Year]</p>
+                  <h4 className="font-medium">Medical Degree</h4>
+                  <p className="text-sm text-gray-500">Fiji School of Medicine</p>
                 </div>
                 <div>
-                  <h4 className="font-medium">[Specialization/Residency]</h4>
-                  <p className="text-sm text-gray-500">[Institution], [Year]</p>
+                  <h4 className="font-medium">Master of Public Health and Tropical Medicine (MPHTM)</h4>
+                  <p className="text-sm text-gray-500">James Cook University, Australia</p>
                 </div>
                 <div>
-                  <h4 className="font-medium">[Additional Qualifications]</h4>
-                  <p className="text-sm text-gray-500">[Details to be added]</p>
+                  <h4 className="font-medium">Radiology Training</h4>
+                  <p className="text-sm text-gray-500">CWMH Hospital, Fiji (2006)</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Medical Internship</h4>
+                  <p className="text-sm text-gray-500">National Referral Hospital, Solomon Islands (2001)</p>
                 </div>
               </CardContent>
             </Card>
@@ -110,21 +116,25 @@ export default function DrLazarusTavichikaiPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl flex items-center gap-2">
                   <Award className="h-5 w-5 text-sky-600" />
-                  Professional Experience
+                  Career Progression
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
                   <h4 className="font-medium">Founder & Medical Director</h4>
-                  <p className="text-sm text-gray-500">eCall Health Center, [Year] - Present</p>
+                  <p className="text-sm text-gray-500">eCall Health Center, 2014 - Present</p>
                 </div>
                 <div>
-                  <h4 className="font-medium">[Previous Position]</h4>
-                  <p className="text-sm text-gray-500">[Institution], [Years]</p>
+                  <h4 className="font-medium">Radiologist</h4>
+                  <p className="text-sm text-gray-500">National Referral Hospital, 2005 - 2014</p>
                 </div>
                 <div>
-                  <h4 className="font-medium">[Previous Position]</h4>
-                  <p className="text-sm text-gray-500">[Institution], [Years]</p>
+                  <h4 className="font-medium">Internal Medicine & Emergency Department</h4>
+                  <p className="text-sm text-gray-500">National Referral Hospital, 2001 - 2005</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Relief Doctor</h4>
+                  <p className="text-sm text-gray-500">Honiara General Hospital</p>
                 </div>
               </CardContent>
             </Card>
@@ -132,34 +142,59 @@ export default function DrLazarusTavichikaiPage() {
         </div>
       </section>
 
-      {/* Vision & Mission */}
+      {/* Specializations & Services */}
       <section className="w-full py-12 md:py-16 lg:py-20 bg-gray-50">
         <div className="container px-4 md:px-6">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="flex flex-col justify-center space-y-4">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Vision for Healthcare</h2>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Medical Specializations</h2>
                 <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Dr. Tavichikai's vision extends beyond traditional medical practice. He believes in creating a
-                  healthcare system that is accessible, affordable, and culturally sensitive to the needs of Solomon
-                  Islands communities.
+                  Dr. Tavichikai specializes in radiology and diagnostic imaging, offering a comprehensive range of
+                  ultrasound services at eCall Health Center.
                 </p>
-                <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  His approach combines modern medical practices with community health initiatives, focusing on
-                  preventive care and health education to create lasting positive impacts on public health outcomes.
-                </p>
-                <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  [Additional details about his philosophy, approach to patient care, and commitment to the community
-                  will be added here.]
-                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
+                    <span className="text-sm">Obstetric Scans</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
+                    <span className="text-sm">Liver & Kidney Scans</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
+                    <span className="text-sm">Prostate & Abdominal Scans</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
+                    <span className="text-sm">Gynecological Scans</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
+                    <span className="text-sm">Thyroid & Eye Scans</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
+                    <span className="text-sm">Inguinoscrotal Scans</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
+                    <span className="text-sm">Echocardiography</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-sky-600 rounded-full"></div>
+                    <span className="text-sm">Public Health Consulting</span>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="mx-auto lg:ml-auto">
               <Image
-                alt="Dr. Lazarus Tavichikai with patients and community"
+                alt="Dr. Lazarus Tavichikai providing medical consultation"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
                 height={400}
-                src="/placeholder.svg?height=400&width=600&text=Community+Healthcare+Vision"
+                src="/placeholder.svg?height=400&width=600&text=Medical+Consultation"
                 width={600}
               />
             </div>
@@ -167,56 +202,151 @@ export default function DrLazarusTavichikaiPage() {
         </div>
       </section>
 
-      {/* Achievements & Impact */}
+      {/* Professional Memberships */}
       <section className="w-full py-12 md:py-16 lg:py-20">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                Achievements & Community Impact
-              </h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Professional Memberships</h2>
               <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Making a difference in healthcare delivery and community health outcomes across the Solomon Islands.
+                Active membership in leading international medical organizations and professional bodies.
               </p>
             </div>
           </div>
 
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="flex flex-col items-center space-y-2 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100">
-                <Heart className="h-8 w-8 text-sky-600" />
-              </div>
-              <h3 className="text-xl font-bold">Patient Care Excellence</h3>
-              <p className="text-sm text-gray-500">
-                [Number] patients served with compassionate, high-quality medical care across multiple specialties.
-              </p>
-            </div>
+          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="border-0 shadow-sm text-center">
+              <CardContent className="pt-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
+                  <Stethoscope className="h-6 w-6 text-sky-600" />
+                </div>
+                <h3 className="font-medium text-sm">Royal Australian College of General Practitioners (RACGP)</h3>
+              </CardContent>
+            </Card>
 
-            <div className="flex flex-col items-center space-y-2 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100">
-                <Users className="h-8 w-8 text-sky-600" />
-              </div>
-              <h3 className="text-xl font-bold">Community Health Programs</h3>
-              <p className="text-sm text-gray-500">
-                Initiated and led [number] community health programs focusing on preventive care and health education.
-              </p>
-            </div>
+            <Card className="border-0 shadow-sm text-center">
+              <CardContent className="pt-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
+                  <Heart className="h-6 w-6 text-sky-600" />
+                </div>
+                <h3 className="font-medium text-sm">Australian College of Rural and Remote Medicine (ACRRM)</h3>
+              </CardContent>
+            </Card>
 
-            <div className="flex flex-col items-center space-y-2 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100">
-                <Award className="h-8 w-8 text-sky-600" />
-              </div>
-              <h3 className="text-xl font-bold">Professional Recognition</h3>
-              <p className="text-sm text-gray-500">
-                [Awards, recognitions, or professional achievements to be added based on actual accomplishments.]
-              </p>
-            </div>
+            <Card className="border-0 shadow-sm text-center">
+              <CardContent className="pt-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
+                  <Award className="h-6 w-6 text-sky-600" />
+                </div>
+                <h3 className="font-medium text-sm">Australasian Society for Ultrasound in Medicine (ASUM)</h3>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm text-center">
+              <CardContent className="pt-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
+                  <Globe className="h-6 w-6 text-sky-600" />
+                </div>
+                <h3 className="font-medium text-sm">Royal College of General Practitioners (RCGP – UK)</h3>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm text-center">
+              <CardContent className="pt-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
+                  <Heart className="h-6 w-6 text-sky-600" />
+                </div>
+                <h3 className="font-medium text-sm">European Society of Cardiology (ESCARDIO – Europe)</h3>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm text-center">
+              <CardContent className="pt-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
+                  <Stethoscope className="h-6 w-6 text-sky-600" />
+                </div>
+                <h3 className="font-medium text-sm">American Institute of Ultrasound in Medicine (AIUM – USA)</h3>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* Personal Philosophy */}
-      <section className="w-full py-12 md:py-16 lg:py-20 bg-sky-50">
+      {/* Leadership & Board Roles */}
+      <section className="w-full py-12 md:py-16 lg:py-20 bg-gray-50">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Leadership & Board Roles</h2>
+              <p className="max-w-[900px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Contributing to healthcare development and professional advancement in the Solomon Islands through
+                leadership positions.
+              </p>
+            </div>
+          </div>
+
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2">
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Users className="h-5 w-5 text-sky-600" />
+                  Current Positions
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <h4 className="font-medium">Board Member</h4>
+                  <p className="text-sm text-gray-500">Solomon Islands Medical and Dental Board (SIMDB)</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Founding Interim Chair</h4>
+                  <p className="text-sm text-gray-500">Solomon Islands Professional Doctors Association (SIPDA)</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Trustee</h4>
+                  <p className="text-sm text-gray-500">Empower Isles</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">UN-Designated Physician</h4>
+                  <p className="text-sm text-gray-500">Medical evacuations (MEDEVACS) for UN expatriates</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Award className="h-5 w-5 text-sky-600" />
+                  Previous Leadership Roles
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <h4 className="font-medium">Board Member</h4>
+                  <p className="text-sm text-gray-500">Solomon Islands Chamber of Commerce and Industry (SICCI)</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Board Member</h4>
+                  <p className="text-sm text-gray-500">Solomon Islands Chamber of Commerce and Manufacturers (SICCM)</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Founding Chair</h4>
+                  <p className="text-sm text-gray-500">
+                    Medical Services & Equipment Working Group (MSEWG) under SICCI
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium">Health Impact Assessment Consultant</h4>
+                  <p className="text-sm text-gray-500">NFD and development of occupational clinic in Noro</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Personal Life & Philosophy */}
+      <section className="w-full py-12 md:py-16 lg:py-20">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
@@ -224,13 +354,14 @@ export default function DrLazarusTavichikaiPage() {
                 "Healthcare is a fundamental right, not a privilege"
               </h2>
               <p className="max-w-[800px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Dr. Tavichikai's commitment to accessible healthcare drives every aspect of eCall Health Center's
-                mission. His dedication to serving the Solomon Islands community reflects a deep understanding of local
-                health challenges and a vision for sustainable healthcare solutions.
+                Beyond his professional achievements, Dr. Tavichikai is a devoted husband and father of four. He
+                believes in creating a healthcare system that is accessible, affordable, and culturally sensitive to the
+                needs of Solomon Islands communities.
               </p>
               <p className="max-w-[800px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                [Additional personal philosophy, quotes, or mission statements will be added here based on actual
-                content.]
+                In his personal time, he enjoys gardening, watching movies, reading, and recently has taken up writing
+                novels and screenplays. His approach combines modern medical practices with community health
+                initiatives, focusing on preventive care and health education.
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">

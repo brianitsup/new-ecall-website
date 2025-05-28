@@ -15,6 +15,7 @@ import {
   Users,
   Globe,
   MapPin,
+  CalendarPlus,
 } from "lucide-react"
 
 export default function ServicesPage() {
@@ -114,7 +115,7 @@ export default function ServicesPage() {
         <div className="container px-4 md:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
-              <Card key={index} className="h-full hover:shadow-lg transition-shadow">
+              <Card key={index} className="h-full hover:shadow-lg transition-shadow group">
                 <CardHeader className="pb-4">
                   <div className="flex justify-center mb-4">
                     <div className="bg-sky-50 p-4 rounded-full">{service.icon}</div>
@@ -143,9 +144,13 @@ export default function ServicesPage() {
                     </div>
                   </div>
                   <div className="flex justify-center">
-                    <Button asChild size="sm" className="bg-sky-600 hover:bg-sky-700 px-6">
-                      <Link href="/contact">Book Now</Link>
-                    </Button>
+                    <Link
+                      href="/contact"
+                      className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-sky-50 text-sky-600 hover:bg-sky-100 hover:text-sky-700 transition-colors group-hover:bg-sky-100 group-hover:scale-105 transition-all duration-200"
+                      title="Book appointment"
+                    >
+                      <CalendarPlus className="h-5 w-5" />
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
