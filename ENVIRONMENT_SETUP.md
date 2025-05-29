@@ -28,7 +28,7 @@ To prevent spam on the contact form:
 1. Go to [Google reCAPTCHA](https://www.google.com/recaptcha/)
 2. Create a new site (v2 checkbox)
 3. Add your domain
-4. Copy the site key and secret key to your `.env.local`
+4. Copy only the secret key to your `.env.local` (the site key is not needed for server-side verification)
 
 ### 5. Database Setup
 Run the database migrations:
@@ -57,5 +57,4 @@ npm run dev
 | `SMTP_PASSWORD` | SMTP password | Yes |
 | `SMTP_FROM` | From email address | Yes |
 | `SMTP_TO` | Contact form destination email | Yes |
-| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | reCAPTCHA site key | No |
 | `RECAPTCHA_SECRET_KEY` | reCAPTCHA secret key | No |
