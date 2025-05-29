@@ -102,6 +102,10 @@ export default function DrLazarusTavichikaiPage() {
                   <p className="text-sm text-gray-500">James Cook University, Australia</p>
                 </div>
                 <div>
+                  <h4 className="font-medium">DHC Paediatric Medicine</h4>
+                  <p className="text-sm text-gray-500">University of Sydney, Australia (2013)</p>
+                </div>
+                <div>
                   <h4 className="font-medium">Radiology Training</h4>
                   <p className="text-sm text-gray-500">CWMH Hospital, Fiji (2006)</p>
                 </div>
@@ -300,15 +304,11 @@ export default function DrLazarusTavichikaiPage() {
                 </div>
                 <div>
                   <h4 className="font-medium">Founding Interim Chair</h4>
-                  <p className="text-sm text-gray-500">Solomon Islands Professional Doctors Association (SIPDA)</p>
+                  <p className="text-sm text-gray-500">Solomon Islands Private Doctors Association (SIPDA) & SIGMA</p>
                 </div>
                 <div>
                   <h4 className="font-medium">Trustee</h4>
                   <p className="text-sm text-gray-500">Empower Isles</p>
-                </div>
-                <div>
-                  <h4 className="font-medium">UN-Designated Physician</h4>
-                  <p className="text-sm text-gray-500">Medical evacuations (MEDEVACS) for UN expatriates</p>
                 </div>
               </CardContent>
             </Card>
@@ -327,7 +327,7 @@ export default function DrLazarusTavichikaiPage() {
                 </div>
                 <div>
                   <h4 className="font-medium">Board Member</h4>
-                  <p className="text-sm text-gray-500">Solomon Islands Chamber of Commerce and Manufacturers (SICCM)</p>
+                  <p className="text-sm text-gray-500">Solomon Islands Country Coordinating Mechanism (SICCM) for Global Fund</p>
                 </div>
                 <div>
                   <h4 className="font-medium">Founding Chair</h4>
@@ -338,6 +338,10 @@ export default function DrLazarusTavichikaiPage() {
                 <div>
                   <h4 className="font-medium">Health Impact Assessment Consultant</h4>
                   <p className="text-sm text-gray-500">NFD and development of occupational clinic in Noro</p>
+                </div>
+                <div>
+                  <h4 className="font-medium">UN-Designated Physician</h4>
+                  <p className="text-sm text-gray-500">Medical evacuations (MEDEVACS) for UN expatriates</p>
                 </div>
               </CardContent>
             </Card>
