@@ -303,6 +303,10 @@ export default function DrLazarusTavichikaiPage() {
                   <p className="text-sm text-gray-500">Solomon Islands Medical and Dental Board (SIMDB)</p>
                 </div>
                 <div>
+                  <h4 className="font-medium">Relief Doctor</h4>
+                  <p className="text-sm text-gray-500">Helena Goldie Hospital</p>
+                </div>
+                <div>
                   <h4 className="font-medium">Founding Interim Chair</h4>
                   <p className="text-sm text-gray-500">Solomon Islands Private Doctors Association (SIPDA) & SIGMA</p>
                 </div>
@@ -332,7 +336,7 @@ export default function DrLazarusTavichikaiPage() {
                 <div>
                   <h4 className="font-medium">Founding Chair</h4>
                   <p className="text-sm text-gray-500">
-                    Medical Services & Equipment Working Group (MSEWG) under SICCI
+                    Small and Medium Enterprise Working Group (SMEWG) under SICCI
                   </p>
                 </div>
                 <div>
