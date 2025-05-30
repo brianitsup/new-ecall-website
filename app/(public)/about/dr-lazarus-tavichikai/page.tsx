@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, GraduationCap, Award, Heart, Users, Stethoscope, Globe } from "lucide-react"
+import { ArrowLeft, ArrowRight, GraduationCap, Award, Users } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -221,8 +221,14 @@ export default function DrLazarusTavichikaiPage() {
           <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Card className="border-0 shadow-sm text-center">
               <CardContent className="pt-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
-                  <Stethoscope className="h-6 w-6 text-sky-600" />
+                <div className="h-12 w-12 mx-auto mb-3 overflow-hidden rounded-full">
+                  <Image
+                    src="/images/RACGP.png"
+                    alt="Royal Australian College of General Practitioners icon"
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                  />
                 </div>
                 <h3 className="font-medium text-sm">Royal Australian College of General Practitioners (RACGP)</h3>
               </CardContent>
@@ -230,8 +236,14 @@ export default function DrLazarusTavichikaiPage() {
 
             <Card className="border-0 shadow-sm text-center">
               <CardContent className="pt-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
-                  <Heart className="h-6 w-6 text-sky-600" />
+                <div className="h-12 w-12 mx-auto mb-3 overflow-hidden rounded-full">
+                  <Image
+                    src="/images/ACRRM.png"
+                    alt="Australian College of Rural and Remote Medicine icon"
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                  />
                 </div>
                 <h3 className="font-medium text-sm">Australian College of Rural and Remote Medicine (ACRRM)</h3>
               </CardContent>
@@ -239,8 +251,14 @@ export default function DrLazarusTavichikaiPage() {
 
             <Card className="border-0 shadow-sm text-center">
               <CardContent className="pt-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
-                  <Award className="h-6 w-6 text-sky-600" />
+                <div className="h-12 w-12 mx-auto mb-3 overflow-hidden rounded-full">
+                  <Image
+                    src="/images/ASUM.png"
+                    alt="Australasian Society for Ultrasound in Medicine icon"
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                  />
                 </div>
                 <h3 className="font-medium text-sm">Australasian Society for Ultrasound in Medicine (ASUM)</h3>
               </CardContent>
@@ -248,8 +266,14 @@ export default function DrLazarusTavichikaiPage() {
 
             <Card className="border-0 shadow-sm text-center">
               <CardContent className="pt-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
-                  <Globe className="h-6 w-6 text-sky-600" />
+                <div className="h-12 w-12 mx-auto mb-3 overflow-hidden rounded-full">
+                  <Image
+                    src="/images/RCGP.png"
+                    alt="Royal College of General Practitioners icon"
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                  />
                 </div>
                 <h3 className="font-medium text-sm">Royal College of General Practitioners (RCGP – UK)</h3>
               </CardContent>
@@ -257,8 +281,14 @@ export default function DrLazarusTavichikaiPage() {
 
             <Card className="border-0 shadow-sm text-center">
               <CardContent className="pt-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
-                  <Heart className="h-6 w-6 text-sky-600" />
+                <div className="h-12 w-12 mx-auto mb-3 overflow-hidden rounded-full">
+                  <Image
+                    src="/images/ESCARDIO.png"
+                    alt="European Society of Cardiology icon"
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                  />
                 </div>
                 <h3 className="font-medium text-sm">European Society of Cardiology (ESCARDIO – Europe)</h3>
               </CardContent>
@@ -266,8 +296,14 @@ export default function DrLazarusTavichikaiPage() {
 
             <Card className="border-0 shadow-sm text-center">
               <CardContent className="pt-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sky-100 mx-auto mb-3">
-                  <Stethoscope className="h-6 w-6 text-sky-600" />
+                <div className="h-12 w-12 mx-auto mb-3 overflow-hidden rounded-full">
+                  <Image
+                    src="/images/AIUM.png"
+                    alt="American Institute of Ultrasound in Medicine icon"
+                    width={48}
+                    height={48}
+                    className="object-cover"
+                  />
                 </div>
                 <h3 className="font-medium text-sm">American Institute of Ultrasound in Medicine (AIUM – USA)</h3>
               </CardContent>
@@ -331,13 +367,13 @@ export default function DrLazarusTavichikaiPage() {
                 </div>
                 <div>
                   <h4 className="font-medium">Board Member</h4>
-                  <p className="text-sm text-gray-500">Solomon Islands Country Coordinating Mechanism (SICCM) for Global Fund</p>
+                  <p className="text-sm text-gray-500">
+                    Solomon Islands Country Coordinating Mechanism (SICCM) for Global Fund
+                  </p>
                 </div>
                 <div>
                   <h4 className="font-medium">Founding Chair</h4>
-                  <p className="text-sm text-gray-500">
-                    Small and Medium Enterprise Working Group (SMEWG) under SICCI
-                  </p>
+                  <p className="text-sm text-gray-500">Small and Medium Enterprise Working Group (SMEWG) under SICCI</p>
                 </div>
                 <div>
                   <h4 className="font-medium">Health Impact Assessment Consultant</h4>
