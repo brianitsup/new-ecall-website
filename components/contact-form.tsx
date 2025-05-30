@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Mail, Phone, User, MessageSquare, Send, Loader2, AlertCircle } from "lucide-react"
+import { Mail, Phone, User, MessageSquare, Send, Loader2, AlertCircle, CheckCircle, Clock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,6 +28,7 @@ export function ContactForm({ defaultService, showServiceSelect = true, classNam
     message: "",
   })
   const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
   const { toast } = useToast()
 
   const services = [
@@ -62,6 +63,7 @@ export function ContactForm({ defaultService, showServiceSelect = true, classNam
       service: defaultService || "",
       message: "",
     })
+    setSubmitted(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,24 +93,30 @@ export function ContactForm({ defaultService, showServiceSelect = true, classNam
     setLoading(true)
 
     try {
+      console.log("Submitting contact form...", {
+        name: formData.name,
+        email: formData.email,
+        service: formData.service,
+      })
+
       const result = await sendContactEmail({
         ...formData,
-        recaptchaToken: "no-recaptcha-configured", // Simple bypass for now
+        recaptchaToken: "no-recaptcha-configured",
       })
 
       if (result.success) {
         toast({
           variant: "success",
-          title: "Message Sent Successfully!",
+          title: "Message Received!",
           description: result.message,
         })
         resetForm()
       } else {
-        console.error("Email send failed:", result.error)
+        console.error("Form submission failed:", result.error)
         toast({
           variant: "destructive",
-          title: "Failed to Send Message",
-          description: result.message,
+          title: "Submission Failed",
+          description: result.message || "An error occurred while submitting your message.",
         })
       }
     } catch (error) {
@@ -116,11 +124,52 @@ export function ContactForm({ defaultService, showServiceSelect = true, classNam
       toast({
         variant: "destructive",
         title: "Unexpected Error",
-        description: "An unexpected error occurred. Please try again or contact us directly.",
+        description: "An unexpected error occurred. Please try again or contact us directly at hello@ecall.com.sb.",
       })
     } finally {
       setLoading(false)
     }
+  }
+
+  if (submitted) {
+    return (
+      <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+        <div className="text-center space-y-6">
+          <div className="flex justify-center">
+            <CheckCircle className="h-16 w-16 text-green-500" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-2xl font-semibold text-gray-800">Message Received!</h3>
+            <p className="text-gray-600">
+              Thank you for contacting eCall Health Center. Your message has been logged and our team will review it.
+            </p>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="text-left">
+                <p className="text-blue-800 text-sm font-medium">What happens next?</p>
+                <ul className="text-blue-700 text-sm mt-1 space-y-1">
+                  <li>• Our team will review your message within 24 hours</li>
+                  <li>• We'll contact you directly at {formData.email}</li>
+                  <li>• For urgent matters, call us at our office</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Button onClick={() => setSubmitted(false)} className="bg-sky-600 hover:bg-sky-700">
+              Send Another Message
+            </Button>
+            <p className="text-xs text-gray-500">
+              Reference: Your message was submitted on {new Date().toLocaleString()}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -219,14 +268,15 @@ export function ContactForm({ defaultService, showServiceSelect = true, classNam
           </div>
         </div>
 
-        {/* Development Mode Notice */}
+        {/* How it works info */}
         <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
           <div className="flex items-start">
             <AlertCircle className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
             <div>
-              <p className="text-blue-800 text-sm font-medium">Secure Contact Form</p>
+              <p className="text-blue-800 text-sm font-medium">How our contact form works</p>
               <p className="text-blue-700 text-xs mt-1">
-                Your message will be sent securely to our team. We'll respond within 24 hours.
+                Your message will be securely logged and reviewed by our team. We'll contact you directly at the email
+                address you provide within 24 hours.
               </p>
             </div>
           </div>
@@ -236,12 +286,12 @@ export function ContactForm({ defaultService, showServiceSelect = true, classNam
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sending Message...
+              Submitting Message...
             </>
           ) : (
             <>
               <Send className="mr-2 h-4 w-4" />
-              Send Message
+              Submit Message
             </>
           )}
         </Button>

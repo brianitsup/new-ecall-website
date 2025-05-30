@@ -1,6 +1,6 @@
 "use server"
 
-import nodemailer from "nodemailer"
+import { contactLogger } from "@/lib/contact-logger"
 
 interface ContactFormData {
   name: string
@@ -15,6 +15,187 @@ interface EmailResponse {
   success: boolean
   message: string
   error?: string
+}
+
+// Send email notification using Resend API directly
+async function sendEmailNotification(formData: ContactFormData): Promise<{ success: boolean; error?: string }> {
+  try {
+    console.log("Attempting to send email notification via Resend...")
+
+    const resendApiKey = process.env.RESEND_API_KEY
+    const smtpFrom = process.env.SMTP_FROM || "website@ecall.com.sb"
+    const smtpTo = process.env.SMTP_TO || "hello@ecall.com.sb"
+
+    if (!resendApiKey) {
+      console.log("Resend API key not found, skipping email sending")
+      return { success: false, error: "Resend API key not configured" }
+    }
+
+    // Create email content
+    const emailSubject = `New Contact Form Message from ${formData.name}`
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #0ea5e9; border-bottom: 2px solid #0ea5e9; padding-bottom: 10px;">
+          New Contact Form Submission
+        </h2>
+        
+        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #334155;">Contact Information</h3>
+          <p><strong>Name:</strong> ${formData.name}</p>
+          <p><strong>Email:</strong> <a href="mailto:${formData.email}">${formData.email}</a></p>
+          ${formData.phone ? `<p><strong>Phone:</strong> <a href="tel:${formData.phone}">${formData.phone}</a></p>` : ""}
+          ${formData.service ? `<p><strong>Service of Interest:</strong> ${formData.service}</p>` : ""}
+        </div>
+
+        <div style="background-color: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <h3 style="margin-top: 0; color: #334155;">Message</h3>
+          <p style="white-space: pre-wrap; line-height: 1.6;">${formData.message}</p>
+        </div>
+
+        <div style="margin-top: 20px; padding: 15px; background-color: #dbeafe; border-radius: 8px;">
+          <p style="margin: 0; font-size: 14px; color: #1e40af;">
+            <strong>Next Steps:</strong> Please respond to this inquiry within 24 hours by replying directly to ${formData.email}
+          </p>
+        </div>
+
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
+        
+        <p style="font-size: 12px; color: #64748b; text-align: center;">
+          This message was sent from the eCall Health Center website contact form.<br>
+          Submitted on ${new Date().toLocaleString("en-US", { timeZone: "Pacific/Guadalcanal" })} (Solomon Islands time)
+        </p>
+      </div>
+    `
+
+    const emailText = `
+New Contact Form Submission
+
+Contact Information:
+Name: ${formData.name}
+Email: ${formData.email}
+${formData.phone ? `Phone: ${formData.phone}` : ""}
+${formData.service ? `Service of Interest: ${formData.service}` : ""}
+
+Message:
+${formData.message}
+
+Please respond to this inquiry within 24 hours by replying directly to ${formData.email}
+
+Submitted on ${new Date().toLocaleString("en-US", { timeZone: "Pacific/Guadalcanal" })} (Solomon Islands time)
+    `
+
+    // Send email via Resend API
+    console.log("Sending email via Resend API...")
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `eCall Health Center <${smtpFrom}>`,
+        to: [smtpTo],
+        reply_to: formData.email,
+        subject: emailSubject,
+        text: emailText,
+        html: emailHtml,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      throw new Error(`Resend API error: ${response.status} - ${errorData}`)
+    }
+
+    const result = await response.json()
+    console.log("Email sent successfully via Resend:", result.id)
+
+    return { success: true }
+  } catch (error) {
+    console.error("Email sending failed:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown email error",
+    }
+  }
+}
+
+// Improved webhook notification with better error handling
+async function sendWebhookNotification(formData: ContactFormData): Promise<{ success: boolean; error?: string }> {
+  try {
+    const webhookUrl = process.env.EMAIL_WEBHOOK_URL
+    const webhookSecret = process.env.WEBHOOK_SECRET
+
+    if (!webhookUrl) {
+      console.log("No webhook URL configured, skipping webhook notification")
+      return { success: true } // Not an error if webhook isn't configured
+    }
+
+    console.log("Sending webhook notification to:", webhookUrl)
+
+    // Prepare webhook payload
+    const payload = {
+      type: "contact_form_submission",
+      data: formData,
+      timestamp: new Date().toISOString(),
+      source: "ecall-website",
+    }
+
+    // Prepare headers
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    }
+
+    if (webhookSecret) {
+      headers.Authorization = `Bearer ${webhookSecret}`
+    }
+
+    // Send webhook with timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+    try {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Webhook HTTP ${response.status}: ${errorText}`)
+      }
+
+      const result = await response.json()
+      console.log("Webhook sent successfully:", result)
+      return { success: true }
+    } catch (fetchError) {
+      clearTimeout(timeoutId)
+      throw fetchError
+    }
+  } catch (error) {
+    console.error("Webhook sending failed:", error)
+
+    // Provide more specific error messages
+    let errorMessage = "Unknown webhook error"
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        errorMessage = "Webhook request timed out"
+      } else if (error.message.includes("Failed to fetch")) {
+        errorMessage = "Webhook URL not accessible (network error)"
+      } else {
+        errorMessage = error.message
+      }
+    }
+
+    return {
+      success: false,
+      error: errorMessage,
+    }
+  }
 }
 
 // Verify reCAPTCHA token
@@ -64,110 +245,14 @@ async function verifyRecaptcha(token: string): Promise<{ success: boolean; error
   }
 }
 
-// Create email transporter
-function createTransporter() {
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-    throw new Error("SMTP configuration is incomplete")
-  }
-
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number.parseInt(process.env.SMTP_PORT || "587"),
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  })
-}
-
-// Generate email templates
-function generateEmailHTML(data: ContactFormData): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>New Contact Form Submission - eCall Health Center</title>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #0ea5e9; color: white; padding: 20px; text-align: center; }
-        .content { background-color: #f9f9f9; padding: 20px; }
-        .field { margin-bottom: 15px; }
-        .label { font-weight: bold; color: #555; }
-        .value { margin-top: 5px; padding: 10px; background-color: white; border-left: 4px solid #0ea5e9; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>New Contact Form Submission</h1>
-          <p>eCall Health Center Website</p>
-        </div>
-        <div class="content">
-          <div class="field">
-            <div class="label">Name:</div>
-            <div class="value">${data.name}</div>
-          </div>
-          <div class="field">
-            <div class="label">Email:</div>
-            <div class="value">${data.email}</div>
-          </div>
-          <div class="field">
-            <div class="label">Phone:</div>
-            <div class="value">${data.phone}</div>
-          </div>
-          ${
-            data.service
-              ? `
-          <div class="field">
-            <div class="label">Service Interested In:</div>
-            <div class="value">${data.service}</div>
-          </div>
-          `
-              : ""
-          }
-          <div class="field">
-            <div class="label">Message:</div>
-            <div class="value">${data.message.replace(/\n/g, "<br>")}</div>
-          </div>
-        </div>
-        <div class="footer">
-          <p>This email was sent from the eCall Health Center website contact form to hello@ecall.com.sb.</p>
-          <p>Submitted on: ${new Date().toLocaleString()}</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `
-}
-
-function generateEmailText(data: ContactFormData): string {
-  return `
-New Contact Form Submission - eCall Health Center
-Sent to: hello@ecall.com.sb
-
-Name: ${data.name}
-Email: ${data.email}
-Phone: ${data.phone}
-${data.service ? `Service: ${data.service}\n` : ""}
-Message: ${data.message}
-
-Submitted on: ${new Date().toLocaleString()}
-  `.trim()
-}
-
 export async function sendContactEmail(formData: ContactFormData): Promise<EmailResponse> {
-  try {
-    console.log("Starting email send process...")
+  let submissionId: string | null = null
 
-    // Validate form data
-    if (!formData.name || !formData.email || !formData.message) {
+  try {
+    console.log("Processing contact form submission...")
+
+    // Validate form data first
+    if (!formData.name?.trim() || !formData.email?.trim() || !formData.message?.trim()) {
       return {
         success: false,
         message: "Please fill in all required fields.",
@@ -199,81 +284,94 @@ export async function sendContactEmail(formData: ContactFormData): Promise<Email
 
     console.log("reCAPTCHA verified successfully")
 
-    // Check email configuration
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD || !process.env.SMTP_TO) {
-      console.error("Email configuration incomplete")
-      return {
-        success: false,
-        message: "Email service is not properly configured. Please contact the administrator.",
-        error: "SMTP configuration incomplete",
-      }
-    }
-
-    // Create transporter
-    console.log("Creating email transporter...")
-    const transporter = createTransporter()
-
-    // Verify transporter configuration
-    console.log("Verifying transporter...")
+    // Log the submission to database
     try {
-      await transporter.verify()
-      console.log("Transporter verified successfully")
-    } catch (verifyError) {
-      console.error("Transporter verification failed:", verifyError)
+      console.log("Logging submission to database...")
+
+      submissionId = await contactLogger.logSubmission({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || "",
+        service: formData.service || "",
+        message: formData.message,
+        ip_address: "Unknown",
+        user_agent: "Web Client",
+      })
+
+      console.log("Submission logged successfully with ID:", submissionId)
+    } catch (loggingError) {
+      console.error("Failed to log submission:", loggingError)
       return {
         success: false,
-        message: "Email service configuration error. Please contact the administrator.",
-        error: verifyError instanceof Error ? verifyError.message : "Transporter verification failed",
+        message:
+          "We're experiencing technical difficulties. Please try again or contact us directly at hello@ecall.com.sb.",
+        error: "Database logging failed",
       }
     }
 
-    // Email options
-    const mailOptions = {
-      from: `"eCall Health Center Website" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to: process.env.SMTP_TO,
-      replyTo: formData.email,
-      subject: `New Contact Form Submission from ${formData.name}`,
-      text: generateEmailText(formData),
-      html: generateEmailHTML(formData),
+    // Try to send email notification directly via Resend
+    console.log("Attempting direct email notification...")
+    const emailResult = await sendEmailNotification(formData)
+
+    // Try webhook as backup only if direct email fails
+    let webhookResult = { success: false, error: "Not attempted" }
+    if (!emailResult.success) {
+      console.log("Direct email failed, trying webhook...")
+      webhookResult = await sendWebhookNotification(formData)
     }
 
-    console.log("Sending email...")
-    console.log("Mail options:", {
-      from: mailOptions.from,
-      to: mailOptions.to,
-      subject: mailOptions.subject,
-    })
+    // Determine final status
+    let finalStatus = "received"
+    let statusMessage = "Submission logged successfully"
 
-    // Send email
-    const info = await transporter.sendMail(mailOptions)
-    console.log("Email sent successfully:", info.messageId)
+    if (emailResult.success) {
+      finalStatus = "sent"
+      statusMessage = "Email sent successfully via Resend"
+      console.log("Email notification sent successfully")
+    } else if (webhookResult.success) {
+      finalStatus = "sent"
+      statusMessage = "Email sent successfully via webhook"
+      console.log("Webhook notification sent successfully")
+    } else {
+      finalStatus = "received"
+      statusMessage = `Email failed: ${emailResult.error}; Webhook failed: ${webhookResult.error}`
+      console.log("Both email and webhook failed, but submission is logged")
+    }
 
+    // Update submission status
+    if (submissionId) {
+      try {
+        await contactLogger.updateSubmissionStatus(submissionId, finalStatus, statusMessage)
+      } catch (updateError) {
+        console.warn("Failed to update submission status:", updateError)
+      }
+    }
+
+    // Always return success if the message was logged
+    // Email failure shouldn't prevent form submission success
     return {
       success: true,
-      message: "Your message has been sent successfully! We will get back to you soon.",
+      message:
+        "Thank you! Your message has been received and logged. Our team will review it and contact you directly at the email address you provided within 24 hours.",
     }
   } catch (error: any) {
-    console.error("Email sending error:", error)
+    console.error("Contact form submission error:", error)
 
-    // Handle specific error types
-    let userMessage = "Failed to send message. Please try again or contact us directly."
-    let errorDetails = "Unknown error"
+    const errorDetails = error instanceof Error ? error.message : "Unknown error"
 
-    if (error instanceof Error) {
-      errorDetails = error.message
-
-      if (error.message.includes("EAUTH")) {
-        userMessage = "Email authentication failed. Please contact the administrator."
-      } else if (error.message.includes("ECONNECTION") || error.message.includes("ETIMEDOUT")) {
-        userMessage = "Unable to connect to email server. Please try again later."
-      } else if (error.message.includes("Invalid login")) {
-        userMessage = "Email service configuration error. Please contact the administrator."
+    // Try to update submission status if we have an ID
+    if (submissionId) {
+      try {
+        await contactLogger.updateSubmissionStatus(submissionId, "failed", errorDetails)
+      } catch (updateError) {
+        console.warn("Failed to update submission status:", updateError)
       }
     }
 
     return {
       success: false,
-      message: userMessage,
+      message:
+        "We're experiencing technical difficulties. Please try again or contact us directly at hello@ecall.com.sb.",
       error: errorDetails,
     }
   }
